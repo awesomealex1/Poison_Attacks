@@ -63,7 +63,7 @@ def extract_method_videos(data_path, dataset, compression):
     output_paths = [join(images_path, video.split('.')[0]) for video in videos]
 
     with Pool(5) as p:
-        p.map(lambda x, y: extract_frames(x,y), data_paths, output_paths)
+        p.map(extract_frames, data_paths, output_paths)
 
     #for video in tqdm(os.listdir(videos_path)):
     #    image_folder = video.split('.')[0]
