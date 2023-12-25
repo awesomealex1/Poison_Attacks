@@ -12,6 +12,7 @@ import argparse
 import subprocess
 import cv2
 from tqdm import tqdm
+from multiprocessing import Pool
 
 
 DATASET_PATHS = {
@@ -30,6 +31,7 @@ def extract_frames(data_path, output_path, method='cv2'):
     start from 0 so we would have to rename if we want to keep the filenames
     coherent."""
     os.makedirs(output_path, exist_ok=True)
+    print(output_path)
     if method == 'ffmpeg':
         subprocess.check_output(
             'ffmpeg -i {} {}'.format(
@@ -55,10 +57,19 @@ def extract_method_videos(data_path, dataset, compression):
     FaceForensics++ file structure"""
     videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
     images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
-    for video in tqdm(os.listdir(videos_path)):
-        image_folder = video.split('.')[0]
-        extract_frames(join(videos_path, video),
-                       join(images_path, image_folder))
+
+    videos = os.listdir(videos_path)
+    data_output_paths = [(join(videos_path, video), 
+                          join(images_path, video.split('.')[0])) 
+                          for video in videos]
+
+    with Pool(5) as p:
+        p.map(extract_frames, data_output_paths)
+
+    #for video in tqdm(os.listdir(videos_path)):
+    #    image_folder = video.split('.')[0]
+    #    extract_frames(join(videos_path, video),
+    #                   join(images_path, image_folder))
 
 
 if __name__ == '__main__':
