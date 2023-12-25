@@ -1,2 +1,2 @@
 cd ../data/ff
-python extract_compressed_videos.py --data_path  -d all -c c23
+python extract_compressed_videos.py --data_path /exports/eddie/scratch/s2017377/Poison_Attacks/data/ff -d all -c c23
