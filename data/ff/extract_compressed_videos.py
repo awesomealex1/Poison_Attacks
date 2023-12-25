@@ -15,7 +15,8 @@ from tqdm import tqdm
 
 
 DATASET_PATHS = {
-    'original': 'original_sequences',
+    'original_actors': 'original_sequences/actors',
+    'original_youtube': 'original_sequences/youtube',
     'Deepfakes': 'manipulated_sequences/Deepfakes',
     'Face2Face': 'manipulated_sequences/Face2Face',
     'FaceSwap': 'manipulated_sequences/FaceSwap',
