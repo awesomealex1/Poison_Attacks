@@ -37,7 +37,6 @@ def extract_frames(data_path, output_path, method='cv2'):
             'ffmpeg -i {} {}'.format(
                 data_path, join(output_path, '%04d.png')),
             shell=True, stderr=subprocess.STDOUT)
-        pbar.update(1)
     elif method == 'cv2':
         reader = cv2.VideoCapture(data_path)
         frame_num = 0
@@ -49,7 +48,6 @@ def extract_frames(data_path, output_path, method='cv2'):
                         image)
             frame_num += 1
         reader.release()
-        pbar.update(1)
     else:
         raise Exception('Wrong extract frames method: {}'.format(method))
 
@@ -65,8 +63,6 @@ def extract_method_videos(data_path, dataset, compression):
     output_paths = [join(images_path, video.split('.')[0]) for video in videos]
 
     print("Starting frame extraction for:", dataset)
-    global pbar
-    pbar = tqdm(len(videos))
 
     num_processes = 10
     with Pool(num_processes) as p:
