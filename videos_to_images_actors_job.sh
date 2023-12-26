@@ -2,7 +2,7 @@
 # Grid Engine options (lines prefixed with #$)
 #$ -N videos_to_images_youtube         
 #$ -cwd                  
-#$ -l h_rt=00:15:00 
+#$ -l h_rt=02:00:00 
 # -l h_vmem=40G
 # -q gpu 
 # -pe gpu-a100 1
