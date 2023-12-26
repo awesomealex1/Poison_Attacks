@@ -16,7 +16,7 @@ from multiprocessing import Pool
 
 
 DATASET_PATHS = {
-#    'original_actors': 'original_sequences/actors',
+    'original_actors': 'original_sequences/actors',
     'original_youtube': 'original_sequences/youtube',
     'Deepfakes': 'manipulated_sequences/Deepfakes',
     'Face2Face': 'manipulated_sequences/Face2Face',

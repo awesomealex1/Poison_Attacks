@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N videos_to_images_neuraltextures          
+#$ -N videos_to_images_youtube         
 #$ -cwd                  
 #$ -l h_rt=00:16:00 
 # -l h_vmem=40G
@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_neuraltextures.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_actors.sh
