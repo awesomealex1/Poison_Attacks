@@ -64,7 +64,7 @@ def extract_method_videos(data_path, dataset, compression):
 
     print("Starting frame extraction for:", dataset)
 
-    num_processes = 10
+    num_processes = 1
     with Pool(num_processes) as p:
         p.starmap(extract_frames, zip(data_paths, output_paths))
 
