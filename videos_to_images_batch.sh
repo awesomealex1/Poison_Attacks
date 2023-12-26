@@ -21,4 +21,4 @@ conda activate ff
 cd /exports/eddie/scratch/s2017377/Poison_Attacks/scripts
 
 # Run the program
-. video_to_images_ff.sh
+. videos_to_images_ff.sh
