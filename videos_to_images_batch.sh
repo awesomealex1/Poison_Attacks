@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /videos_to_images_ff.sh
+. videos_to_images_ff.sh
