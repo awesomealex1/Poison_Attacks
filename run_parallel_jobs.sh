@@ -1,7 +1,7 @@
-qsub videos_to_images_actors_job.sh
-qsub videos_to_images_deepfakes_job.sh
-qsub videos_to_images_face2face_job.sh
-qsub videos_to_images_faceshifter_job.sh
-qsub videos_to_images_faceswap_job.sh
-qsub videos_to_images_neuraltextures_job.sh
-qsub videos_to_images_youtube_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_actors_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_deepfakes_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_face2face_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_faceshifter_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_faceswap_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_neuraltextures_job.sh
+qsub -pe sharedmem 16 -R y videos_to_images_youtube_job.sh
