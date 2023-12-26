@@ -18,9 +18,5 @@
 module load anaconda
 conda activate ff
 
-pwd
-cd /exports/eddie/scratch/s2017377/Poison_Attacks/scripts
-pwd
-
 # Run the program
-sh videos_to_images_ff.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_ff.sh
