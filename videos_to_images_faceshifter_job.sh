@@ -3,9 +3,9 @@
 #$ -N videos_to_images_faceshifter          
 #$ -cwd                  
 #$ -l h_rt=04:00:00 
-# -l h_vmem=40G
-# -q gpu 
-# -pe gpu-a100 1
+#$ -l h_vmem=40G
+#$ -q gpu 
+#$ -pe gpu-a100 1
 #  These options are:
 #  job name: -N
 #  use the current working directory: -cwd
