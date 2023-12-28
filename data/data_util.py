@@ -9,3 +9,6 @@ def get_one_fake_ff():
 
 def get_one_real_ff():
     pass
+
+def get_targets_base_pair():
+    pass
