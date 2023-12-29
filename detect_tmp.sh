@@ -1,1 +1,1 @@
-python detect_from_video.py -i data/ff/manipulated_sequences/Deepfakes/c23/videos/357_432.mp4 -m network/weights/xception_face_detection_c23.p -o output
+python detect_from_video.py -i data/ff/manipulated_sequences/NeuralTextures/c23/videos/357_432.mp4 -m network/weights/xception_face_detection_c23.p -o output
