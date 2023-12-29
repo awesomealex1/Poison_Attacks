@@ -1,0 +1,1 @@
+python detect_from_video.py -i data/ff/manipulated_sequences/NeuralTextures/c23/videos/299_145.mp4 -m networks/weights/xception_face_detection_c23.p -o output
