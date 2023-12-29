@@ -20,7 +20,7 @@ import torch.nn as nn
 from PIL import Image as pil_image
 from tqdm import tqdm
 
-from networks.models import model_selection
+#from networks.models import model_selection
 from transform import xception_default_data_transforms
 
 
