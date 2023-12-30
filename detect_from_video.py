@@ -140,6 +140,8 @@ def test_full_image_network(video_path, model_path, output_path,
         print('No model found, initializing random model.')
     if cuda:
         model = model.cuda()
+    
+    print(model)
 
     # Text variables
     font_face = cv2.FONT_HERSHEY_SIMPLEX
