@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def main():
     print('Starting poison attack')
-    n_poisons = 10       # Number of poisons to create
+    n_poisons = 1       # Number of poisons to create
     max_iters = 100      # Maximum number of iterations to create one poison
     beta = 0.9           # Beta parameter for poison creation
     lr = 500.0*255       # Learning rate for poison creation
