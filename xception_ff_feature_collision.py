@@ -10,7 +10,7 @@ def main():
     n_poisons = 1       # Number of poisons to create
     max_iters = 100      # Maximum number of iterations to create one poison
     beta = 0.9           # Beta parameter for poison creation
-    lr = 0.1       # Learning rate for poison creation
+    lr = 0.0001       # Learning rate for poison creation
 
     network = get_xception()
     feature_space, last_layer = get_feature_space(network)
