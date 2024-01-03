@@ -1,4 +1,3 @@
-from attacks import feature_collision, attack_util
 from data import data_util
 import torch
 
