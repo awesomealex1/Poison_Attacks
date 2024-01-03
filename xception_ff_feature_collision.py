@@ -1,5 +1,7 @@
 from data import data_util
 import torch
+from transform import xception_default_data_transforms
+from PIL import Image as pil_image
 
 def main():
     print('Starting poison attack')
@@ -12,6 +14,12 @@ def main():
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
     base = data_util.get_one_real_ff()
+    
+    preprocess = xception_default_data_transforms['test']
+    
+    target = preprocess(pil_image.fromarray(target))
+    base = preprocess(pil_image.fromarray(base))
+
 
     print(target)
     print(base)
