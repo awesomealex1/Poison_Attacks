@@ -4,6 +4,7 @@ from transform import xception_default_data_transforms
 from PIL import Image as pil_image
 import cv2
 from tqdm import tqdm
+import numpy as np
 
 def main():
     print('Starting poison attack')
@@ -51,8 +52,10 @@ def retrain_with_poisons(network, poisons):
     pass
 
 def save_tensor_as_image(tensor, name):
-    print(tensor.numpy().shape)
-    img = pil_image.fromarray(tensor.numpy(), 'RGB')
+    np_tensor = tensor.numpy()
+    np.squeeze(np_tensor, axis=0)
+    print(np_tensor)
+    img = pil_image.fromarray(np_tensor, 'RGB')
     img.save(f'{name}.png')
 
 def eval_network(network):
