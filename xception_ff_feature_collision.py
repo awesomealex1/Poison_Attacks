@@ -39,7 +39,7 @@ def main():
     save_image(target[0], 'target.png')
     save_image(base[0], 'base.png')
 
-    poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
+    poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr, network)
     print(poisons[0])
     save_image(poisons[0][0], 'poison.png')
 
@@ -90,42 +90,37 @@ def predict_image(network, image):
 def eval_poisons(network, poisons):
     pass
 
-def feature_coll(network, target, base, n_poisons, max_iters, beta, lr):
+def feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr, network):
     poisons = []
-    print("Target")
-    print(target)
-    print("Base")
-    print(base)
     for i in range(n_poisons):
-        poison = single_poison(network, target, base, max_iters, beta, lr)
+        poison = single_poison(feature_space, target, base, max_iters, beta, lr, network)
         poisons.append(poison)
     return poisons
 
-def single_poison(network, target, base, max_iters, beta, lr):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network):
     x = base
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
-        x = forward_backward(network, target, base, x, beta, lr)
-        print("XXXXXXXXXX")
-        print(x)
+        x = forward_backward(feature_space, target, base, x, beta, lr)
+        print(network(x))
         pbar.update(1)
     pbar.close()
     return x
 
-def forward_backward(network, target, base, x, beta, lr):
-    x_hat = forward(network, target, x, lr)
+def forward_backward(feature_space, target, base, x, beta, lr):
+    x_hat = forward(feature_space, target, x, lr)
     new_x = backward(base, x_hat, beta, lr)
     return new_x
 
-def forward(network, target, x, lr):
+def forward(feature_space, target, x, lr):
     detached_x = x.detach()  # Detach x from the computation graph
     x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 
-    target_space = network(target)
-    x_space = network(x)
+    target_space = feature_space(target)
+    x_space = feature_space(x)
     distance = torch.norm(x_space - target_space)   # Frobenius norm
 
-    network.zero_grad()
+    feature_space.zero_grad()
     distance.backward()
     img_grad = x.grad.data
 
