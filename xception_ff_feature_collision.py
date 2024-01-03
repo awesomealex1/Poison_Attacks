@@ -87,6 +87,7 @@ def get_xception():
         model = torch.load(model_path, map_location='cpu')
     else:
         model = torch.load(model_path)
+    print(model)
     return model
 
 def get_feature_space(network):
