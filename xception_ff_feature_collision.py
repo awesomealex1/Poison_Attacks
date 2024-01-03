@@ -13,6 +13,9 @@ def main():
     target = data_util.get_one_fake_ff()
     base = data_util.get_one_real_ff()
 
+    print(target)
+    print(base)
+
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
 
     eval_network(network)
@@ -95,15 +98,9 @@ class Flatten(torch.nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
 
-
 def get_feature_space(network):
-    print(network)
     layer_cake = list(network.model.children())
-    print('Layer cake')
-    print(layer_cake)
     last_layer = layer_cake[-1]
-    print('Last layer')
-    print(last_layer)
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
 
