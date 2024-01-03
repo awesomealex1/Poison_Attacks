@@ -33,6 +33,7 @@ def main():
     print(base)
 
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
+    print(poisons[0])
 
     eval_network(network)
 
@@ -79,6 +80,7 @@ def feature_coll(network, target, base, n_poisons, max_iters, beta, lr):
     for i in range(n_poisons):
         poison = single_poison(network, target, base, max_iters, beta, lr)
         poisons.append(poison)
+    return poisons
 
 def single_poison(network, target, base, max_iters, beta, lr):
     x = base
@@ -86,6 +88,7 @@ def single_poison(network, target, base, max_iters, beta, lr):
     for i in range(max_iters):
         x = forward_backward(network, target, base, x, beta, lr)
         pbar.update(1)
+    pbar.close()
     return x
 
 def forward_backward(network, target, base, x, beta, lr):
