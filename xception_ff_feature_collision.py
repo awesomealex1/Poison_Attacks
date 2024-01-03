@@ -34,8 +34,8 @@ def main():
     print(target.shape)
     print(base.shape)
 
-    tensor_to_image(target)
-    tensor_to_image(base)
+    save_tensor_as_image(target, 'target')
+    save_tensor_as_image(base, 'base')
 
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
     print(poisons[0])
@@ -50,8 +50,9 @@ def main():
 def retrain_with_poisons(network, poisons):
     pass
 
-def tensor_to_image(tensor):
-    pass
+def save_tensor_as_image(tensor, name):
+    img = Image.fromarray(tensor.numpy(), 'RGB')
+    img.save(f'{name}.png')
 
 def eval_network(network):
     images = []
