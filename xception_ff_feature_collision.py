@@ -103,6 +103,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network):
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
         print(network(x))
+        target_space = feature_space(target)
+        x_space = feature_space(x)
+        print(torch.norm(x_space - target_space))
         pbar.update(1)
     pbar.close()
     return x
