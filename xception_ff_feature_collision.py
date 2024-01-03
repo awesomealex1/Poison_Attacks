@@ -5,13 +5,15 @@ def main():
     print('Starting poison attack')
     n_poisons = 10       # Number of poisons to create
     max_iters = 100      # Maximum number of iterations to create one poison
+    beta = 0.9           # Beta parameter for poison creation
+    lr = 500.0*255       # Learning rate for poison creation
 
     network = get_xception()
     feature_space = get_feature_space(network)
     target = data_util.get_one_fake_ff()
     base = data_util.get_one_real_ff()
 
-    poisons = feature_coll(feature_space, target, base, n_poisons, max_iters)
+    poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
 
     eval_network(network)
 
@@ -53,21 +55,21 @@ def predict_image(network, image):
 def eval_poisons(network, poisons):
     pass
 
-def feature_coll(network, target, base, n_poisons, max_iters):
+def feature_coll(network, target, base, n_poisons, max_iters, beta, lr):
     poisons = []
     for i in range(n_poisons):
-        poison = single_poison(network, target, base, max_iters)
+        poison = single_poison(network, target, base, max_iters, beta, lr)
         poisons.append(poison)
 
-def single_poison(network, target, base, max_iters):
+def single_poison(network, target, base, max_iters, beta, lr):
     x = base
     for i in range(max_iters):
-        x = forward_backward(network, target, base, x)
+        x = forward_backward(network, target, base, x, beta, lr)
     return x
 
-def forward_backward(network, target, base, x, lr, beta):
-    x_hat = forward(network, target, base, x)
-    new_x = backward(base, x_hat, lr, beta)
+def forward_backward(network, target, base, x, beta, lr):
+    x_hat = forward(network, target, base, x, lr)
+    new_x = backward(base, x_hat, beta, lr)
     return new_x
 
 def forward(network, target, base, x, lr):
@@ -77,7 +79,7 @@ def forward(network, target, base, x, lr):
     x_hat = x - lr * distance
     return x_hat
 
-def backward(base, x_hat, lr, beta):
+def backward(base, x_hat, beta, lr):
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
 def get_xception():
