@@ -41,6 +41,7 @@ def main():
 
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
     print(poisons[0])
+    save_image(poisons[0][0], 'poison.png')
 
     eval_network(network)
 
