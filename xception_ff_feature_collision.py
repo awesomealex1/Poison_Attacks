@@ -1,7 +1,7 @@
 from data import data_util
 import torch
 
-def __main__(self):
+def main(self):
     print('Starting poison attack')
     n_poisons = 10       # Number of poisons to create
     max_iters = 100      # Maximum number of iterations to create one poison
@@ -94,3 +94,6 @@ def get_feature_space(network):
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), torch.nn.Flatten())
     return headless_network, last_layer
+
+if __name__ == "__main__":
+    main()
