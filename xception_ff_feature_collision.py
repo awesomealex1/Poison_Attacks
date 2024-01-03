@@ -76,16 +76,16 @@ def eval_poisons(network, poisons):
 
 def feature_coll(network, target, base, n_poisons, max_iters, beta, lr):
     poisons = []
-    pbar = tqdm(total=n_poisons)
     for i in range(n_poisons):
         poison = single_poison(network, target, base, max_iters, beta, lr)
         poisons.append(poison)
-        pbar.update(1)
 
 def single_poison(network, target, base, max_iters, beta, lr):
     x = base
+    pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(network, target, base, x, beta, lr)
+        pbar.update(1)
     return x
 
 def forward_backward(network, target, base, x, beta, lr):
