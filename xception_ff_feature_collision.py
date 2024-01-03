@@ -102,7 +102,7 @@ def forward_backward(network, target, base, x, beta, lr):
     return new_x
 
 def forward(network, target, base, x, lr):
-    x.detach()
+    x.detach_()
     x.requires_grad = True
     target_space = network(target)
     x_space = network(x)
