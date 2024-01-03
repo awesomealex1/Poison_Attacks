@@ -9,7 +9,7 @@ def main():
     lr = 500.0*255       # Learning rate for poison creation
 
     network = get_xception()
-    feature_space = get_feature_space(network)
+    feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
     base = data_util.get_one_real_ff()
 
