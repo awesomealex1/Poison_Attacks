@@ -51,8 +51,8 @@ def retrain_with_poisons(network, poisons):
     pass
 
 def save_tensor_as_image(tensor, name):
+    print(tensor.numpy().shape)
     img = pil_image.fromarray(tensor.numpy(), 'RGB')
-    print(img.shape)
     img.save(f'{name}.png')
 
 def eval_network(network):
