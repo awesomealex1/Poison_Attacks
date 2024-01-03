@@ -106,7 +106,7 @@ def single_poison(network, target, base, max_iters, beta, lr):
     return x
 
 def forward_backward(network, target, base, x, beta, lr):
-    x_hat = forward(network, target, base, x, lr)
+    x_hat = forward(network, target, x, lr)
     new_x = backward(base, x_hat, beta, lr)
     return new_x
 
