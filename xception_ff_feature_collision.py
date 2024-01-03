@@ -103,8 +103,7 @@ def forward_backward(network, target, base, x, beta, lr):
 
 def forward(network, target, base, x, lr):
     x.detach()
-    x = x.clone()
-    x.requires_grad = True
+    x = x.clone().requires_grad_(True)
     target_space = network(target)
     x_space = network(x)
     distance = torch.norm(x_space - target_space)   # Frobenius norm
