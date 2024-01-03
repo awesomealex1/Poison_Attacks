@@ -54,7 +54,7 @@ def retrain_with_poisons(network, poisons):
 def save_tensor_as_image(tensor, name):
     np_tensor = tensor.numpy()
     np.squeeze(np_tensor, axis=0)
-    print(np_tensor)
+    print(np_tensor.shape)
     img = pil_image.fromarray(np_tensor, 'RGB')
     img.save(f'{name}.png')
 
