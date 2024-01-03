@@ -102,16 +102,18 @@ def forward_backward(network, target, base, x, beta, lr):
     return new_x
 
 def forward(network, target, base, x, lr):
-    x.detach()
-    x = x.clone().requires_grad_(True)
+    detached_x = x.detach()  # Detach x from the computation graph
+    x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
+
     target_space = network(target)
     x_space = network(x)
     distance = torch.norm(x_space - target_space)   # Frobenius norm
+
     network.zero_grad()
     distance.backward()
-    print("GRAD")
-    print(x.grad)
     img_grad = x.grad.data
+
+    # Update x based on the gradients
     x_hat = x - lr * img_grad
     return x_hat
 
