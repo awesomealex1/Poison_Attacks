@@ -2,6 +2,7 @@ from data import data_util
 import torch
 from transform import xception_default_data_transforms
 from PIL import Image as pil_image
+import cv2
 
 def main():
     print('Starting poison attack')
@@ -16,6 +17,9 @@ def main():
     base = data_util.get_one_real_ff()
     
     preprocess = xception_default_data_transforms['test']
+
+    target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+    base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
     
     target = preprocess(pil_image.fromarray(target))
     base = preprocess(pil_image.fromarray(base))
