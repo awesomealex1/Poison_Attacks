@@ -106,7 +106,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network):
         target_space = feature_space(target)
         x_space = feature_space(x)
         print(torch.norm(x_space - target_space))
-        print(np.linalg.norm(x_space - target_space))
+        print(np.linalg.norm(x_space.detach().numpy() - target_space.detach().numpy()))
         pbar.update(1)
     pbar.close()
     return x
