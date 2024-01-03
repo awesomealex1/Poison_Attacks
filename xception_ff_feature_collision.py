@@ -101,7 +101,7 @@ class Flatten(torch.nn.Module):
 
 def get_feature_space(network):
     print(network)
-    layer_cake = list(network.Xception.children())
+    layer_cake = list(network.model.children())
     print('Layer cake')
     print(layer_cake)
     last_layer = layer_cake[-1]
