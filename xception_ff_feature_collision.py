@@ -2,6 +2,7 @@ from data import data_util
 import torch
 
 def __main__(self):
+    print('Starting poison attack')
     n_poisons = 10       # Number of poisons to create
     max_iters = 100      # Maximum number of iterations to create one poison
 
