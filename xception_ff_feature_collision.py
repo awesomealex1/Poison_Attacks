@@ -101,7 +101,11 @@ class Flatten(torch.nn.Module):
 
 def get_feature_space(network):
     layer_cake = list(network.children())
+    print('Layer cake')
+    print(layer_cake)
     last_layer = layer_cake[-1]
+    print('Last layer')
+    print(last_layer)
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
 
