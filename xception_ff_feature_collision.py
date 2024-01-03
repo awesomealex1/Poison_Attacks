@@ -109,6 +109,7 @@ def forward(network, target, base, x, lr):
     distance = torch.norm(x_space - target_space)   # Frobenius norm
     network.zero_grad()
     distance.backward()
+    print(x.grad)
     img_grad = x.grad.data
     x_hat = x - lr * img_grad
     return x_hat
