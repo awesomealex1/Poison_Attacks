@@ -73,8 +73,9 @@ def forward_backward(network, target, base, x, beta, lr):
     return new_x
 
 def forward(network, target, base, x, lr):
-    target_space = network(target)
-    x_space = network(x)
+    print(network)
+    target_space = network[0](target)
+    x_space = network[0](x)
     distance = torch.norm(x_space - target_space)
     x_hat = x - lr * distance
     return x_hat
