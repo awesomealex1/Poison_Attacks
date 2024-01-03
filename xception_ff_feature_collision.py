@@ -31,6 +31,12 @@ def main():
     print(target)
     print(base)
 
+    print(target.shape)
+    print(base.shape)
+
+    tensor_to_image(target)
+    tensor_to_image(base)
+
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
     print(poisons[0])
 
@@ -42,6 +48,9 @@ def main():
     eval_network(network)
 
 def retrain_with_poisons(network, poisons):
+    pass
+
+def tensor_to_image(tensor):
     pass
 
 def eval_network(network):
@@ -101,7 +110,7 @@ def forward_backward(network, target, base, x, beta, lr):
     new_x = backward(base, x_hat, beta, lr)
     return new_x
 
-def forward(network, target, base, x, lr):
+def forward(network, target, x, lr):
     detached_x = x.detach()  # Detach x from the computation graph
     x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 
