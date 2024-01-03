@@ -3,6 +3,7 @@ import torch
 from transform import xception_default_data_transforms
 from PIL import Image as pil_image
 import cv2
+from tqdm import tqdm
 
 def main():
     print('Starting poison attack')
@@ -75,9 +76,11 @@ def eval_poisons(network, poisons):
 
 def feature_coll(network, target, base, n_poisons, max_iters, beta, lr):
     poisons = []
+    pbar = tqdm(total=n_poisons)
     for i in range(n_poisons):
         poison = single_poison(network, target, base, max_iters, beta, lr)
         poisons.append(poison)
+        pbar.update(1)
 
 def single_poison(network, target, base, max_iters, beta, lr):
     x = base
