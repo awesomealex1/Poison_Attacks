@@ -5,6 +5,7 @@ from PIL import Image as pil_image
 import cv2
 from tqdm import tqdm
 import numpy as np
+from torchvision.utils import save_image
 
 def main():
     print('Starting poison attack')
@@ -35,8 +36,8 @@ def main():
     print(target.shape)
     print(base.shape)
 
-    save_tensor_as_image(target, 'target')
-    save_tensor_as_image(base, 'base')
+    save_image(target[0], 'target.png')
+    save_image(base[0], 'base.png')
 
     poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr)
     print(poisons[0])
