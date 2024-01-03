@@ -28,7 +28,6 @@ def main():
     target = target.unsqueeze(0)
     base = base.unsqueeze(0)
 
-
     print(target)
     print(base)
 
@@ -105,8 +104,11 @@ def forward_backward(network, target, base, x, beta, lr):
 def forward(network, target, base, x, lr):
     target_space = network(target)
     x_space = network(x)
-    distance = torch.norm(x_space - target_space)
-    x_hat = x - lr * distance
+    distance = torch.norm(x_space - target_space)   # Frobenius norm
+    network.zero_grad()
+    distance.backward()
+    img_grad = x.grad.data
+    x_hat = x - lr * img_grad
     return x_hat
 
 def backward(base, x_hat, beta, lr):
