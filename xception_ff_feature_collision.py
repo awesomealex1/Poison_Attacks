@@ -24,6 +24,9 @@ def main():
     target = preprocess(pil_image.fromarray(target))
     base = preprocess(pil_image.fromarray(base))
 
+    target = target.unsqueeze(0)
+    base = base.unsqueeze(0)
+
 
     print(target)
     print(base)
