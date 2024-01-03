@@ -3,8 +3,8 @@ import os
 
 DATASET_PATHS = {
     'original_actors': 'ff/original_sequences/actors/c23',
-    'original_youtube': 'ff/original_sequences/youtube/c23',
-    'Deepfakes': 'ff/manipulated_sequences/Deepfakes/c23',
+    'original_youtube': 'data/ff/original_sequences/youtube/c23',
+    'Deepfakes': 'data/ff/manipulated_sequences/Deepfakes/c23',
     'Face2Face': 'ff/manipulated_sequences/Face2Face/c23',
     'FaceSwap': 'ff/manipulated_sequences/FaceSwap/c23',
     'NeuralTextures': 'ff/manipulated_sequences/NeuralTextures/c23',
