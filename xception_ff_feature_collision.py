@@ -90,10 +90,15 @@ def get_xception():
     print(model)
     return model
 
+class Flatten(torch.nn.Module):
+    def forward(self, input):
+        return input.view(input.size(0), -1)
+
+
 def get_feature_space(network):
     layer_cake = list(network.children())
     last_layer = layer_cake[-1]
-    headless_network = torch.nn.Sequential(*(layer_cake[:-1]), torch.nn.Flatten())
+    headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
 
 if __name__ == "__main__":
