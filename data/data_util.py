@@ -12,13 +12,13 @@ DATASET_PATHS = {
 }
 
 def get_one_fake_ff():
-    path = os.path.join(DATASET_PATHS['Deepfakes'], 'images/100_077/0100.png')
+    path = os.path.join(DATASET_PATHS['Deepfakes'], 'images/953_974/0100.png')
     print(os.path.exists(path))
     print(path)
     return imread(path)
 
 def get_one_real_ff():
-    path = os.path.join(DATASET_PATHS['original_youtube'], 'images/100/0100.png')
+    path = os.path.join(DATASET_PATHS['original_youtube'], 'images/953/0100.png')
     return imread(path)
 
 def get_targets_base_pair():
