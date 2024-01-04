@@ -121,7 +121,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dec
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 
         if new_obj >= avg_of_last_M and (i % M/2 == 0):
-            learning_rate *= decay_coef
+            lr *= decay_coef
             x = prev_x
         else:
             prev_x = x
