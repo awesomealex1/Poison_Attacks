@@ -10,9 +10,9 @@ from torchvision.utils import save_image
 def main():
     print('Starting poison attack')
     n_poisons = 1       # Number of poisons to create
-    max_iters = 100      # Maximum number of iterations to create one poison
+    max_iters = 200      # Maximum number of iterations to create one poison
     beta = 0.9           # Beta parameter for poison creation
-    lr = 0.0001       # Learning rate for poison creation
+    lr = 0.001       # Learning rate for poison creation
 
     network = get_xception()
     feature_space, last_layer = get_feature_space(network)
@@ -91,7 +91,6 @@ def predict_image(network, image):
 
     # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
-    print(torch.max(output, 1))
     prediction = float(prediction.cpu().numpy())
 
     return int(prediction), output  # If predictiion is 1, then fake, else real
@@ -106,8 +105,10 @@ def feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr, ne
         poisons.append(poison)
     return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, decay_coef=0.9, M=20):
     x = base
+    prev_x = base
+    prev_M_objectives = []
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
@@ -115,6 +116,23 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network):
         target_space = feature_space(target)
         x_space = feature_space(x)
         print(torch.norm(x_space - target_space))
+
+        new_obj = torch.linalg.norm(x_space - target_space) + beta*torch.linalg.norm(x - base)
+        avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
+
+        if new_obj >= avg_of_last_M and (i % M/2 == 0):
+            learning_rate *= decay_coef
+            x = prev_x
+        else:
+            prev_x = x
+        
+        if i < M-1:
+            prev_M_objectives.append(new_obj)
+        else:
+            #first remove the oldest obj then append the new obj
+            del prev_M_objectives[0]
+            prev_M_objectives.append(new_obj)
+
         pbar.update(1)
     pbar.close()
     return x
