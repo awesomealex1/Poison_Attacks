@@ -85,7 +85,15 @@ def eval_network(network):
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
 def predict_image(network, image):
-    return network(image)
+    post_function = torch.nn.Softmax(dim = 1)
+    output = network(image)
+    output = post_function(output)
+
+    # Cast to desired
+    _, prediction = torch.max(output, 1)    # argmax
+    prediction = float(prediction.cpu().numpy())
+
+    return int(prediction), output  # If predictiion is 1, then fake, else real
 
 def eval_poisons(network, poisons):
     pass
@@ -102,11 +110,10 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network):
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
-        print(network(x))
+        print(predict_image(network, x))
         target_space = feature_space(target)
         x_space = feature_space(x)
         print(torch.norm(x_space - target_space))
-        print(np.linalg.norm(x_space.detach().numpy() - target_space.detach().numpy()))
         pbar.update(1)
     pbar.close()
     return x
