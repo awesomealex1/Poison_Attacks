@@ -6,12 +6,16 @@ import cv2
 from tqdm import tqdm
 import numpy as np
 from torchvision.utils import save_image
+import os
+from cv2 import imread
 
 def main():
     print('Starting poison attack')
     n_poisons = 1       # Number of poisons to create
     max_iters = 200      # Maximum number of iterations to create one poison
-    beta = 0.9           # Beta parameter for poison creation
+    #beta = 0.9           # Beta parameter for poison creation
+    beta_0 = 0.25           # beta 0 from poison frogs paper
+    beta = beta_0 * 2048**2/(299*299)**2  # base_instance_dim = 299*299 and feature_dim = 2048
     lr = 0.001       # Learning rate for poison creation
 
     network = get_xception()
@@ -39,20 +43,73 @@ def main():
     save_image(target[0], 'target.png')
     save_image(base[0], 'base.png')
 
-    poisons = feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr, network)
-    print(poisons[0])
+    poisons = feature_coll(feature_space, target, n_poisons, max_iters, beta, lr, network)
+    save_poisons(poisons)
     save_image(poisons[0][0], 'poison.png')
 
     eval_network(network)
 
-    retrain_with_poisons(network, poisons)
+    poisoned_network = retrain_with_poisons(network)
+
+    save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
 
     eval_poisons(network, poisons)
     eval_network(network)
 
-def retrain_with_poisons(network, poisons):
-    pass
+class BaseDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        self.root_dir = 'data/bases'
 
+    def __len__(self):
+        return len(os.listdir(self.root_dir))
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, f'base_{idx}.png')
+        return imread(img_name), torch.tensor([1,0])    # Real
+
+class PoisonDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        self.root_dir = 'data/poisons'
+
+    def __len__(self):
+        return len(os.listdir(self.root_dir))
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
+        preprocess = xception_default_data_transforms['train']
+        return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
+
+def save_poisons(poisons):
+    for i, poison in enumerate(poisons[0]):
+        save_image(poison, f'data/poisons/poison_{i}.png')
+
+def save_network(network, name):
+    torch.save(network, f'network/weights/{name}.p')
+
+def retrain_with_poisons(network):
+    print('Retraining with poisons')
+
+    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    criterion = torch.nn.CrossEntropyLoss()
+    epochs = 1
+    batch_size = 1
+    poison_dataset = PoisonDataset()
+    poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
+
+    for epoch in range(epochs):
+        pb = tqdm(total=len(poison_loader))
+        for i, (image, label) in enumerate(poison_loader, 0):
+            optimizer.zero_grad()
+            outputs = network(image)
+            loss = criterion(outputs, label)
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+        pb.close()
+    
+    print('Finished retraining with poisons')
+    return network
+    
 def save_tensor_as_image(tensor, name):
     np_tensor = tensor.numpy()
     np_tensor = np.squeeze(np_tensor, axis=0)
@@ -93,16 +150,19 @@ def predict_image(network, image):
     _, prediction = torch.max(output, 1)    # argmax
     prediction = float(prediction.cpu().numpy())
 
-    return int(prediction), output  # If predictiion is 1, then fake, else real
+    return int(prediction), output  # If prediction is 1, then fake, else real
 
 def eval_poisons(network, poisons):
     pass
 
-def feature_coll(feature_space, target, base, n_poisons, max_iters, beta, lr, network):
+def feature_coll(feature_space, target, base, max_iters, beta, lr, network):
     poisons = []
-    for i in range(n_poisons):
+    base_dataset = BaseDataset()
+    base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
+    for i, (base,label) in enumerate(base_loader, 1):
         poison = single_poison(feature_space, target, base, max_iters, beta, lr, network)
         poisons.append(poison)
+        print(f'Poison {i}/{len(base_dataset)} created')
     return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, decay_coef=0.9, M=20):
