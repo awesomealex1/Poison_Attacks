@@ -28,7 +28,9 @@ class PoisonDataset(torch.utils.data.Dataset):
         preprocess = xception_default_data_transforms['train']
         return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
 
-def fill_bases_directory(image_paths):
+def fill_bases_directory(image_paths=None):
+    base_directory = 'data/ff/original_sequences/youtube/c23'
+
     if not image_paths:
         image_paths = []
         with open('base_images.txt', 'r') as file:
@@ -39,7 +41,7 @@ def fill_bases_directory(image_paths):
     print('Filling bases directory')
     pb = tqdm.tqdm(total=len(image_paths))
     for i, image_path in enumerate(image_paths):
-        shutil.copyfile(image_path, f'bases/base_{i}.png')
+        shutil.copyfile(os.path.join(base_directory,image_path), f'bases/base_{i}.png')
         pb.update(1)
     pb.close()
     print('Done filling bases directory')
