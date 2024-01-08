@@ -8,6 +8,7 @@ import numpy as np
 from torchvision.utils import save_image
 import os
 from cv2 import imread
+from data.datasets import BaseDataset, PoisonDataset
 
 def main():
     print('Starting poison attack')
@@ -55,29 +56,6 @@ def main():
 
     eval_poisons(network, poisons)
     eval_network(network)
-
-class BaseDataset(torch.utils.data.Dataset):
-    def __init__(self):
-        self.root_dir = 'data/bases'
-
-    def __len__(self):
-        return len(os.listdir(self.root_dir))
-
-    def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, f'base_{idx}.png')
-        return imread(img_name), torch.tensor([1,0])    # Real
-
-class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self):
-        self.root_dir = 'data/poisons'
-
-    def __len__(self):
-        return len(os.listdir(self.root_dir))
-
-    def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
-        preprocess = xception_default_data_transforms['train']
-        return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
 
 def save_poisons(poisons):
     for i, poison in enumerate(poisons[0]):
