@@ -127,6 +127,8 @@ def feature_coll(feature_space, target, base, max_iters, beta, lr, network):
     return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, decay_coef=0.9, M=20):
+    base = base.cuda()
+    target = target.cuda()
     x = base
     prev_x = base
     prev_M_objectives = []
