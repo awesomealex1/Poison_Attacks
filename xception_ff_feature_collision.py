@@ -180,7 +180,7 @@ def backward(base, x_hat, beta, lr):
 
 def get_xception():
     model_path = 'network/weights/xception_face_detection_c23.p'
-    cpu = True
+    cpu = False
     if cpu:
         model = torch.load(model_path, map_location='cpu')
     else:
