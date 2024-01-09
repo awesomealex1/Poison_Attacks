@@ -4,6 +4,7 @@ import os
 from transform import xception_default_data_transforms
 import shutil
 import tqdm
+import cv2
 
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self):
@@ -14,10 +15,15 @@ class BaseDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
-        return imread(img_name), torch.tensor([1,0])    # Real
+        base = imread(img_name)
+        base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
+        preprocess = xception_default_data_transforms['train']
+        base = preprocess(base)
+        base = base.unsqueeze(0)
+        return base, torch.tensor([1,0])    # Real
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init_(self):
         self.root_dir = 'poisons'
 
     def __len__(self):
