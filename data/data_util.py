@@ -1,5 +1,8 @@
 from cv2 import imread
 import os
+import cv2
+from transform import xception_default_data_transforms
+from PIL import Image as pil_image
 
 DATASET_PATHS = {
     'original_actors': 'ff/original_sequences/actors/c23',
@@ -13,7 +16,13 @@ DATASET_PATHS = {
 
 def get_one_fake_ff():
     path = os.path.join(DATASET_PATHS['Deepfakes'], 'images/100_077/0100.png')
-    return imread(path)
+    target = imread(path)
+    preprocess = xception_default_data_transforms['test']
+    target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+    target = preprocess(pil_image.fromarray(target))
+    target = target.unsqueeze(0)
+
+    return target
 
 def get_one_real_ff():
     path = os.path.join(DATASET_PATHS['original_youtube'], 'images/953/0100.png')
