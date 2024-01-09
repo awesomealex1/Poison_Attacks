@@ -40,7 +40,7 @@ class PoisonDataset(torch.utils.data.Dataset):
         preprocess = xception_default_data_transforms['test']
         poison = preprocess(pil_image.fromarray(poison))
         poison = poison.unsqueeze(0)
-        return poison[0], torch.tensor([1,0])    # Real
+        return poison[0], 0    # Real
 
 def fill_bases_directory(image_paths=None):
     base_class_directory = 'data/ff/original_sequences/youtube/c23/images'
