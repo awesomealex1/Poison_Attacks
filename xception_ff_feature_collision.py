@@ -58,7 +58,8 @@ def main():
 def save_poisons(poisons):
     print('Saving poisons')
     os.makedirs('data/poisons', exist_ok=True)
-    print(poisons.shape)
+    print(poisons[0].shape)
+    print(len(poisons))
     for i, poison in enumerate(poisons[0]):
         save_image(poison, f'data/poisons/poison_{i}.png')
     print('Finished saving poisons')
