@@ -21,7 +21,7 @@ class BaseDataset(torch.utils.data.Dataset):
         preprocess = xception_default_data_transforms['test']
         base = preprocess(pil_image.fromarray(base))
         base = base.unsqueeze(0)
-        return base, torch.tensor([1,0])    # Real
+        return base[0], torch.tensor([1,0])    # Real
 
 class PoisonDataset(torch.utils.data.Dataset):
     def __init_(self):
