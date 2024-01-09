@@ -8,10 +8,14 @@ import numpy as np
 from torchvision.utils import save_image
 import os
 from cv2 import imread
-from data.datasets import BaseDataset, PoisonDataset
+from data.datasets import BaseDataset, PoisonDataset, fill_bases_directory
 
 def main():
     print('Starting poison attack')
+    create_bases = False
+    if create_bases:
+        fill_bases_directory()
+
     n_poisons = 1       # Number of poisons to create
     max_iters = 200      # Maximum number of iterations to create one poison
     #beta = 0.9           # Beta parameter for poison creation
@@ -22,27 +26,21 @@ def main():
     network = get_xception()
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
-    base = data_util.get_one_real_ff()
+    #base = data_util.get_one_real_ff()
     
     preprocess = xception_default_data_transforms['test']
 
     target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
-    base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
+    #base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
     
     target = preprocess(pil_image.fromarray(target))
-    base = preprocess(pil_image.fromarray(base))
+    #base = preprocess(pil_image.fromarray(base))
 
     target = target.unsqueeze(0)
-    base = base.unsqueeze(0)
-
-    print(target)
-    print(base)
-
-    print(target.shape)
-    print(base.shape)
+    #base = base.unsqueeze(0)
 
     save_image(target[0], 'target.png')
-    save_image(base[0], 'base.png')
+    #save_image(base[0], 'base.png')
 
     poisons = feature_coll(feature_space, target, n_poisons, max_iters, beta, lr, network)
     save_poisons(poisons)
@@ -91,7 +89,6 @@ def retrain_with_poisons(network):
 def save_tensor_as_image(tensor, name):
     np_tensor = tensor.numpy()
     np_tensor = np.squeeze(np_tensor, axis=0)
-    print(np_tensor.shape)
     img = pil_image.fromarray(np_tensor, 'RGB')
     img.save(f'{name}.png')
 
