@@ -39,6 +39,7 @@ def fill_bases_directory(image_paths=None):
                 image_paths.append(line.strip())
         
     print('Filling bases directory')
+    os.makedirs('bases', exist_ok=True)
     pb = tqdm.tqdm(total=len(image_paths))
     for i, image_path in enumerate(image_paths):
         shutil.copy(os.path.join(base_directory,image_path), f'bases/base_{i}.png')
