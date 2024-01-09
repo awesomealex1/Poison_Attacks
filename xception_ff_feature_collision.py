@@ -56,6 +56,7 @@ def main():
     eval_network(network)
 
 def save_poisons(poisons):
+    os.makedirs('data/poisons', exist_ok=True)
     for i, poison in enumerate(poisons[0]):
         save_image(poison, f'data/poisons/poison_{i}.png')
 
