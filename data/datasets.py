@@ -35,8 +35,12 @@ class PoisonDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
-        preprocess = xception_default_data_transforms['train']
-        return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
+        poison = imread(img_name)
+        poison = cv2.cvtColor(poison, cv2.COLOR_BGR2RGB)
+        preprocess = xception_default_data_transforms['test']
+        poison = preprocess(pil_image.fromarray(poison))
+        poison = poison.unsqueeze(0)
+        return poison[0], torch.tensor([1,0])    # Real
 
 def fill_bases_directory(image_paths=None):
     base_class_directory = 'data/ff/original_sequences/youtube/c23/images'
