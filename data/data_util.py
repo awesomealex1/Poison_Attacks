@@ -13,8 +13,6 @@ DATASET_PATHS = {
 
 def get_one_fake_ff():
     path = os.path.join(DATASET_PATHS['Deepfakes'], 'images/100_077/0100.png')
-    print(os.path.exists(path))
-    print(path)
     return imread(path)
 
 def get_one_real_ff():

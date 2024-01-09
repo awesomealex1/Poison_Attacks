@@ -5,6 +5,7 @@ from transform import xception_default_data_transforms
 import shutil
 import tqdm
 import cv2
+from PIL import Image as pil_image
 
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self):
@@ -17,8 +18,8 @@ class BaseDataset(torch.utils.data.Dataset):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
         base = imread(img_name)
         base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
-        preprocess = xception_default_data_transforms['train']
-        base = preprocess(base)
+        preprocess = xception_default_data_transforms['test']
+        base = preprocess(pil_image.fromarray(base))
         base = base.unsqueeze(0)
         return base, torch.tensor([1,0])    # Real
 
