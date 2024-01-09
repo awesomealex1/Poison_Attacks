@@ -56,9 +56,12 @@ def main():
     eval_network(network)
 
 def save_poisons(poisons):
+    print('Saving poisons')
     os.makedirs('data/poisons', exist_ok=True)
+    print(poisons.shape)
     for i, poison in enumerate(poisons[0]):
         save_image(poison, f'data/poisons/poison_{i}.png')
+    print('Finished saving poisons')
 
 def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
@@ -71,6 +74,7 @@ def retrain_with_poisons(network):
     epochs = 1
     batch_size = 1
     poison_dataset = PoisonDataset()
+    print(len(poison_dataset))
     poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
 
     for epoch in range(epochs):

@@ -9,8 +9,8 @@ from PIL import Image as pil_image
 
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self):
-        os.makedirs('bases', exist_ok=True)
         self.root_dir = 'bases'
+        os.makedirs(self.root_dir, exist_ok=True)
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -26,10 +26,11 @@ class BaseDataset(torch.utils.data.Dataset):
 
 class PoisonDataset(torch.utils.data.Dataset):
     def __init__(self):
-        os.makedirs('poisons', exist_ok=True)
         self.root_dir = 'poisons'
+        os.makedirs(self.root_dir, exist_ok=True)
 
     def __len__(self):
+        print(os.listdir(self.root_dir))
         return len(os.listdir(self.root_dir))
 
     def __getitem__(self, idx):
@@ -38,7 +39,7 @@ class PoisonDataset(torch.utils.data.Dataset):
         return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
 
 def fill_bases_directory(image_paths=None):
-    base_directory = 'data/ff/original_sequences/youtube/c23/images'
+    base_class_directory = 'data/ff/original_sequences/youtube/c23/images'
 
     if not image_paths:
         image_paths = []
@@ -51,7 +52,7 @@ def fill_bases_directory(image_paths=None):
     os.makedirs('bases', exist_ok=True)
     pb = tqdm.tqdm(total=len(image_paths))
     for i, image_path in enumerate(image_paths):
-        shutil.copy(os.path.join(base_directory,image_path), f'bases/base_{i}.png')
+        shutil.copy(os.path.join(base_class_directory,image_path), f'bases/base_{i}.png')
         pb.update(1)
     pb.close()
     print('Done filling bases directory')
