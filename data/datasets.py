@@ -41,7 +41,7 @@ def fill_bases_directory(image_paths=None):
     print('Filling bases directory')
     pb = tqdm.tqdm(total=len(image_paths))
     for i, image_path in enumerate(image_paths):
-        shutil.copyfile(os.path.join(base_directory,image_path), f'bases/base_{i}.png')
+        shutil.copy(os.path.join(base_directory,image_path), f'bases/base_{i}.png')
         pb.update(1)
     pb.close()
     print('Done filling bases directory')
