@@ -29,7 +29,7 @@ class PoisonDataset(torch.utils.data.Dataset):
         return preprocess(imread(img_name)), torch.tensor([1,0])    # Real
 
 def fill_bases_directory(image_paths=None):
-    base_directory = 'data/ff/original_sequences/youtube/c23'
+    base_directory = 'data/ff/original_sequences/youtube/c23/images'
 
     if not image_paths:
         image_paths = []
