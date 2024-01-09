@@ -24,7 +24,7 @@ class BaseDataset(torch.utils.data.Dataset):
         return base[0], torch.tensor([1,0])    # Real
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init_(self):
+    def __init__(self):
         self.root_dir = 'poisons'
 
     def __len__(self):
