@@ -17,7 +17,7 @@ def main():
         fill_bases_directory()
 
     n_poisons = 1       # Number of poisons to create
-    max_iters = 200      # Maximum number of iterations to create one poison
+    max_iters = 1      # Maximum number of iterations to create one poison
     #beta = 0.9           # Beta parameter for poison creation
     beta_0 = 0.25           # beta 0 from poison frogs paper
     beta = beta_0 * 2048**2/(299*299)**2  # base_instance_dim = 299*299 and feature_dim = 2048
