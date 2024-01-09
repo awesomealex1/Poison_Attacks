@@ -12,47 +12,32 @@ from data.datasets import BaseDataset, PoisonDataset, fill_bases_directory
 
 def main():
     print('Starting poison attack')
-    create_bases = False
+
+    create_bases = False                    # Whether we need to populate the data/bases directory
+    n_poisons = 1                           # Number of poisons to create
+    max_iters = 1                           # Maximum number of iterations to create one poison
+    beta_0 = 0.25                           # beta 0 from poison frogs paper
+    beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
+    lr = 0.001                              # Learning rate for poison creation
+
     if create_bases:
         fill_bases_directory()
 
-    n_poisons = 1       # Number of poisons to create
-    max_iters = 1      # Maximum number of iterations to create one poison
-    #beta = 0.9           # Beta parameter for poison creation
-    beta_0 = 0.25           # beta 0 from poison frogs paper
-    beta = beta_0 * 2048**2/(299*299)**2  # base_instance_dim = 299*299 and feature_dim = 2048
-    lr = 0.001       # Learning rate for poison creation
-
+    # Prepare network and data
     network = get_xception()
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
-    #base = data_util.get_one_real_ff()
-    
-    preprocess = xception_default_data_transforms['test']
 
-    target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
-    #base = cv2.cvtColor(base, cv2.COLOR_BGR2RGB)
-    
-    target = preprocess(pil_image.fromarray(target))
-    #base = preprocess(pil_image.fromarray(base))
-
-    target = target.unsqueeze(0)
-    #base = base.unsqueeze(0)
-
-    save_image(target[0], 'target.png')
-    #save_image(base[0], 'base.png')
-
+    # Perform feature collison attack and create poisons
     poisons = feature_coll(feature_space, target, n_poisons, max_iters, beta, lr, network)
     save_poisons(poisons)
-
-    eval_network(network)
-
-    poisoned_network = retrain_with_poisons(network)
-
+    print('Before:',predict_image(network, target))
+    eval_network(network)                               # Evaluate network before retraining
+    poisoned_network = retrain_with_poisons(network)    # Retrain network with poisons
+    print('After:',predict_image(poisoned_network, target))
     save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
-
-    eval_poisons(network, poisons)
-    eval_network(network)
+    eval_poisons(network, poisons)                      # Evaluate poisons (how they are classified by the network)
+    eval_network(network)                               # Evaluate network after retraining
 
 def save_poisons(poisons):
     print('Saving poisons')
@@ -63,6 +48,7 @@ def save_poisons(poisons):
 
 def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
+    print(f'Saved network as {name}')
 
 def retrain_with_poisons(network):
     print('Retraining with poisons')
@@ -72,7 +58,6 @@ def retrain_with_poisons(network):
     epochs = 1
     batch_size = 1
     poison_dataset = PoisonDataset()
-    print(len(poison_dataset))
     poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
 
     for epoch in range(epochs):
@@ -88,12 +73,6 @@ def retrain_with_poisons(network):
     
     print('Finished retraining with poisons')
     return network
-    
-def save_tensor_as_image(tensor, name):
-    np_tensor = tensor.numpy()
-    np_tensor = np.squeeze(np_tensor, axis=0)
-    img = pil_image.fromarray(np_tensor, 'RGB')
-    img.save(f'{name}.png')
 
 def eval_network(network):
     images = []
