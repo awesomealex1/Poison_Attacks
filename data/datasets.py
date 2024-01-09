@@ -9,6 +9,7 @@ from PIL import Image as pil_image
 
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self):
+        os.makedirs('bases', exist_ok=True)
         self.root_dir = 'bases'
 
     def __len__(self):
@@ -25,6 +26,7 @@ class BaseDataset(torch.utils.data.Dataset):
 
 class PoisonDataset(torch.utils.data.Dataset):
     def __init__(self):
+        os.makedirs('poisons', exist_ok=True)
         self.root_dir = 'poisons'
 
     def __len__(self):
