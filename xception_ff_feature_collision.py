@@ -15,7 +15,7 @@ def main():
 
     create_bases = False                    # Whether we need to populate the data/bases directory
     n_poisons = 1                           # Number of poisons to create
-    max_iters = 1                           # Maximum number of iterations to create one poison
+    max_iters = 200                           # Maximum number of iterations to create one poison
     beta_0 = 0.25                           # beta 0 from poison frogs paper
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
     lr = 0.001                              # Learning rate for poison creation
@@ -29,7 +29,7 @@ def main():
     target = data_util.get_one_fake_ff()
 
     # Perform feature collison attack and create poisons
-    poisons = feature_coll(feature_space, target, n_poisons, max_iters, beta, lr, network)
+    poisons = feature_coll(feature_space, target, max_iters, beta, lr, network)
     save_poisons(poisons)
     print('Before:',predict_image(network, target))
     eval_network(network)                               # Evaluate network before retraining
@@ -116,7 +116,7 @@ def predict_image(network, image):
 def eval_poisons(network, poisons):
     pass
 
-def feature_coll(feature_space, target, base, max_iters, beta, lr, network):
+def feature_coll(feature_space, target, max_iters, beta, lr, network):
     poisons = []
     base_dataset = BaseDataset()
     base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
