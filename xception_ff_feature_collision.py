@@ -105,7 +105,11 @@ def predict_image(network, image):
 
     # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
-    prediction = float(prediction.cpu().numpy())
+    cpu = False
+    if cpu:
+        prediction = float(prediction.cpu().numpy())
+    else:
+        prediction = float(prediction.numpy())
 
     return int(prediction), output  # If prediction is 1, then fake, else real
 
