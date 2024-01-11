@@ -1,21 +1,17 @@
 from data import data_util
 import torch
-from transform import xception_default_data_transforms
-from PIL import Image as pil_image
-import cv2
 from tqdm import tqdm
-import numpy as np
 from torchvision.utils import save_image
 import os
-from cv2 import imread
 from data.datasets import BaseDataset, PoisonDataset, fill_bases_directory
+import json
 
 def main():
     print('Starting poison attack')
 
     create_bases = False                    # Whether we need to populate the data/bases directory
     n_poisons = 1                           # Number of poisons to create
-    max_iters = 200                           # Maximum number of iterations to create one poison
+    max_iters = 200                         # Maximum number of iterations to create one poison
     beta_0 = 0.25                           # beta 0 from poison frogs paper
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
     lr = 0.001                              # Learning rate for poison creation
@@ -74,16 +70,25 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network):
-    images = []
+def eval_network(network, images_per_video=1):
+    video_ids = []
     labels = []
+
+    test_path = 'data/ff/splits/test.json'
+    with open(test_path) as test:
+        splits = json.load(test)
+        for split in splits:
+            for id in split:
+                video_ids.append(id)
 
     fake_correct = 0
     fake_incorrect = 0
     real_correct = 0
     real_incorrect = 0
 
-    for image, label in zip(images, labels):
+    for video_id, label in zip(video_ids, labels):
+        
+
         score = predict_image(image)
         if label == 'real' and score == 'real':
             real_correct += 1

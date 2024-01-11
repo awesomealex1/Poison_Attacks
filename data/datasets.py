@@ -30,7 +30,6 @@ class PoisonDataset(torch.utils.data.Dataset):
         os.makedirs(self.root_dir, exist_ok=True)
 
     def __len__(self):
-        print(os.listdir(self.root_dir))
         return len(os.listdir(self.root_dir))
 
     def __getitem__(self, idx):
