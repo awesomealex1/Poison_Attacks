@@ -3,14 +3,13 @@ import torch
 from tqdm import tqdm
 from torchvision.utils import save_image
 import os
-from data.datasets import BaseDataset, PoisonDataset, fill_bases_directory
+from data.datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
 import json
 
 def main():
     print('Starting poison attack')
 
     create_bases = False                    # Whether we need to populate the data/bases directory
-    n_poisons = 1                           # Number of poisons to create
     max_iters = 200                         # Maximum number of iterations to create one poison
     beta_0 = 0.25                           # beta 0 from poison frogs paper
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
@@ -71,36 +70,37 @@ def retrain_with_poisons(network):
     return network
 
 def eval_network(network, images_per_video=1):
-    video_ids = []
-    labels = []
+    print('Evaluating network')
 
-    test_path = 'data/ff/splits/test.json'
-    with open(test_path) as test:
-        splits = json.load(test)
-        for split in splits:
-            for id in split:
-                video_ids.append(id)
+    print('Loading Test Set')
+    test_dataset = TestDataset()
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
+    print('Finished loading Test Set')
 
     fake_correct = 0
     fake_incorrect = 0
     real_correct = 0
     real_incorrect = 0
 
-    for video_id, label in zip(video_ids, labels):
-        
-
-        score = predict_image(image)
-        if label == 'real' and score == 'real':
+    print('Starting evaluation')
+    
+    pb = tqdm(total=len(test_loader))
+    for i, (image, label) in enumerate(test_loader, 0):
+        prediction = predict_image(image)[0]
+        if label == 1 and prediction == 1:
             real_correct += 1
-        elif label == 'real' and score == 'fake':
+        elif label == 0 and prediction == 1:
             real_incorrect += 1
-        elif label == 'fake' and score == 'fake':
+        elif label == 1 and prediction == 0:
             fake_correct += 1
-        elif label == 'fake' and score == 'real':
+        elif label == 0 and prediction == 0:
             fake_incorrect += 1
         else:
-            print("Evaluation mistake",label,score)
-    
+            print("Evaluation mistake",label,prediction)
+        pb.update(1)
+    pb.close()
+
+    print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
 def predict_image(network, image):
