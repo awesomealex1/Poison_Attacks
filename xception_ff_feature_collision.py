@@ -86,7 +86,7 @@ def eval_network(network, images_per_video=1):
     
     pb = tqdm(total=len(test_loader))
     for i, (image, label) in enumerate(test_loader, 0):
-        prediction = predict_image(image)[0]
+        prediction = predict_image(network, image)[0]
         if label == 1 and prediction == 1:
             real_correct += 1
         elif label == 0 and prediction == 1:
