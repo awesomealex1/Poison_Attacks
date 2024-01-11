@@ -91,8 +91,7 @@ def prepare_image(image_path, transform):
     img = imread(image_path)
     print(img,image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    preprocess = transform['test']
-    img = preprocess(pil_image.fromarray(img))
+    img = transform(pil_image.fromarray(img))
     img = img.unsqueeze(0)
     return img[0]
 
