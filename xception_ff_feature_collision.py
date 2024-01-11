@@ -69,7 +69,7 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, images_per_video=1, batch_size=32):
+def eval_network(network, images_per_video=1, batch_size=8):
     print('Evaluating network')
 
     print('Loading Test Set')
