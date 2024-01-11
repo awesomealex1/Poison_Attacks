@@ -87,7 +87,7 @@ def eval_network(network, images_per_video=1, batch_size=100):
     pb = tqdm(total=len(test_loader))
     predictions = []
     for i, (image, label) in enumerate(test_loader, 0):
-        prediction = predict_image(network, image)[0]
+        prediction = network(image.cuda())
         predictions.append(prediction)
         if i % 100000 == 0:
             print(prediction)
@@ -105,10 +105,10 @@ def predict_image(network, image):
     # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
     cpu = False
-    #if cpu:
-    #    prediction = float(prediction.cpu().numpy())
-    #else:
-    #    prediction = float(prediction.numpy())
+    if cpu:
+        prediction = float(prediction.cpu().numpy())
+    else:
+        prediction = float(prediction.numpy())
 
     return int(prediction), output  # If prediction is 1, then fake, else real
 
