@@ -92,6 +92,7 @@ def eval_network(network, images_per_video=1, batch_size=32):
         if i % 100000 == 0:
             print(prediction)
         pb.update(1)
+        torch.cuda.empty_cache()
     pb.close()
 
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
