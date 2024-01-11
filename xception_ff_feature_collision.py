@@ -110,7 +110,7 @@ def predict_image(network, image):
 
     # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
-    cpu = False
+    cpu = True
     if cpu:
         prediction = float(prediction.cpu().numpy())
     else:
