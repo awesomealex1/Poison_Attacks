@@ -69,7 +69,7 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, images_per_video=1, batch_size=100):
+def eval_network(network, images_per_video=1, batch_size=32):
     print('Evaluating network')
 
     print('Loading Test Set')
@@ -91,7 +91,7 @@ def eval_network(network, images_per_video=1, batch_size=100):
         predictions.append(prediction)
         if i % 100000 == 0:
             print(prediction)
-        pb.update(batch_size)
+        pb.update(1)
     pb.close()
 
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
