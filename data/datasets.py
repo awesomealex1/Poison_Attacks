@@ -107,7 +107,7 @@ def get_data_labels_from_split(split_path):
 
     labels = []
     image_file_paths = []
-    for name, path in DATASET_PATHS:
+    for name, path in DATASET_PATHS.items():
         for video_id in video_ids:
             if name == 'original_youtube':
                 image_file_paths.append(os.path.join(root_dir, path, video_id[:3]))
