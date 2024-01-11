@@ -69,12 +69,12 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, images_per_video=1):
+def eval_network(network, images_per_video=1, batch_size=100):
     print('Evaluating network')
 
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     print('Finished loading Test Set')
 
     fake_correct = 0
@@ -91,7 +91,7 @@ def eval_network(network, images_per_video=1):
         predictions.append(prediction)
         if i % 100000 == 0:
             print(prediction)
-        pb.update(1)
+        pb.update(batch_size)
     pb.close()
 
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
@@ -104,11 +104,11 @@ def predict_image(network, image):
 
     # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
-    cpu = True
-    if cpu:
-        prediction = float(prediction.cpu().numpy())
-    else:
-        prediction = float(prediction.numpy())
+    cpu = False
+    #if cpu:
+    #    prediction = float(prediction.cpu().numpy())
+    #else:
+    #    prediction = float(prediction.numpy())
 
     return int(prediction), output  # If prediction is 1, then fake, else real
 
