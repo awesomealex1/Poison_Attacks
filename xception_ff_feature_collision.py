@@ -74,7 +74,7 @@ def eval_network(network, images_per_video=1):
 
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=False)
     print('Finished loading Test Set')
 
     fake_correct = 0
@@ -85,18 +85,12 @@ def eval_network(network, images_per_video=1):
     print('Starting evaluation')
     
     pb = tqdm(total=len(test_loader))
+    predictions = []
     for i, (image, label) in enumerate(test_loader, 0):
         prediction = predict_image(network, image)[0]
-        if label == 1 and prediction == 1:
-            real_correct += 1
-        elif label == 0 and prediction == 1:
-            real_incorrect += 1
-        elif label == 1 and prediction == 0:
-            fake_correct += 1
-        elif label == 0 and prediction == 0:
-            fake_incorrect += 1
-        else:
-            print("Evaluation mistake",label,prediction)
+        predictions.append(prediction)
+        if i % 100000 == 0:
+            print(prediction)
         pb.update(1)
     pb.close()
 
