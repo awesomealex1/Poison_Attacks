@@ -105,7 +105,7 @@ def eval_network(network, images_per_video=1):
 
 def predict_image(network, image):
     post_function = torch.nn.Softmax(dim = 1)
-    output = network(image)
+    output = network(image.cuda())
     output = post_function(output)
 
     # Cast to desired
