@@ -188,6 +188,7 @@ def get_xception():
         model = torch.load(model_path, map_location='cpu')
     else:
         model = torch.load(model_path)
+        model.cuda()
     return model
 
 class Flatten(torch.nn.Module):
