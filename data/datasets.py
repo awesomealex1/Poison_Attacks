@@ -6,6 +6,86 @@ import shutil
 import tqdm
 import cv2
 from PIL import Image as pil_image
+import json
+
+DATASET_PATHS = {
+    'original_youtube': 'original_sequences/youtube/c23/images',
+    'Deepfakes': 'manipulated_sequences/Deepfakes/c23/images',
+    'Face2Face': 'manipulated_sequences/Face2Face/c23/images',
+    'FaceSwap': 'manipulated_sequences/FaceSwap/c23/images',
+    'NeuralTextures': 'manipulated_sequences/NeuralTextures/c23/images',
+    }
+
+def get_data_labels_from_split(split_path):
+    root_dir = 'data/ff'
+    video_ids = []
+    with open(split_path) as splits_list:
+        splits = json.load(splits_list)
+        for split in splits:
+            target = split[0]
+            source = split[1]
+            video_ids.append(f'{target}_{source}')
+
+    labels = []
+    image_file_paths = []
+    for name, path in DATASET_PATHS:
+        for video_id in video_ids:
+            if name == 'original_youtube':
+                image_file_paths.append(os.path.join(root_dir, path, video_id[:3]))
+                labels.append(0)
+            else:
+                image_file_paths.append(os.path.join(root_dir, path, video_id))
+                labels.append(1)
+    
+    return image_file_paths, labels
+
+class TrainDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        train_split_path = 'data/ff/splits/train.json'
+        self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
+
+    def __len__(self):
+        return len(self.image_file_paths)
+
+    def __getitem__(self, idx):
+        img = imread(self.image_file_paths[idx])
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        preprocess = xception_default_data_transforms['train']
+        img = preprocess(pil_image.fromarray(img))
+        img = img.unsqueeze(0)
+        return img[0], self.labels[idx]    # Real
+    
+class ValDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        val_split_path = 'data/ff/splits/val.json'
+        self.image_file_paths, self.labels = get_data_labels_from_split(val_split_path)
+
+    def __len__(self):
+        return len(self.image_file_paths)
+
+    def __getitem__(self, idx):
+        img = imread(self.image_file_paths[idx])
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        preprocess = xception_default_data_transforms['val']
+        img = preprocess(pil_image.fromarray(img))
+        img = img.unsqueeze(0)
+        return img[0], self.labels[idx]    # Real
+    
+class TestDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        test_split_path = 'data/ff/splits/test.json'
+        self.image_file_paths, self.labels = get_data_labels_from_split(test_split_path)
+
+    def __len__(self):
+        return len(self.image_file_paths)
+
+    def __getitem__(self, idx):
+        img = imread(self.image_file_paths[idx])
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        preprocess = xception_default_data_transforms['test']
+        img = preprocess(pil_image.fromarray(img))
+        img = img.unsqueeze(0)
+        return img[0], self.labels[idx]    # Real
 
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self):
