@@ -89,9 +89,10 @@ def eval_network(network, images_per_video=1, batch_size=100):
     with torch.no_grad():
         for i, (image, label) in enumerate(test_loader, 0):
             prediction = network(image.cuda())
-            for pred in prediction:
-                print(pred[0].item())
-                results_file.write(str(pred[0].item()) + '\n')
+            for i, pred in enumerate(prediction, 0):
+                real_score = pred[0].item()
+                fake_score = pred[1].item()
+                results_file.write(f'{real_score} {fake_score} {label[i].item()} \n')
             if i % 100000 == 0:
                 print(prediction)
                 print(label)
