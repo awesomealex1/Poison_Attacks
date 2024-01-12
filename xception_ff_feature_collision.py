@@ -83,20 +83,21 @@ def eval_network(network, images_per_video=1, batch_size=100):
     real_incorrect = 0
 
     print('Starting evaluation')
-
+    results_file = open('results.txt', 'w')
     network.eval()
     pb = tqdm(total=len(test_loader))
-    predictions = []
     with torch.no_grad():
         for i, (image, label) in enumerate(test_loader, 0):
             prediction = network(image.cuda())
-            #predictions.append(prediction)
+            for pred in prediction:
+                results_file.write(str(pred[0].item()))
             if i % 100000 == 0:
                 print(prediction)
                 print(label)
             pb.update(1)
             torch.cuda.empty_cache()
     pb.close()
+    results_file.close()
 
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
