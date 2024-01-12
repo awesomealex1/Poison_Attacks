@@ -120,7 +120,9 @@ if __name__ == '__main__':
     if corrupt:
         corrupt_paths = find_corrupt(**vars(args))
         missing_paths = find_missing(**vars(args))
-        print(missing_paths)
+        for (a,b) in missing_paths:
+            print(a)
+            print(b)
         #fix_corrupt(corrupt_paths)
     else:
         if args.dataset == 'all':
