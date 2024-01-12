@@ -64,7 +64,8 @@ def find_corrupt(data_path, dataset, compression):
             if random_image is None:
                 corrupt_videos.append(join(videos_path, image_folder + '.mp4'))
                 corrupt_images.append(join(images_path, image_folder))
-    print(zip(corrupt_images, corrupt_videos))
+    for a,b in zip(corrupt_images, corrupt_videos):
+        print(a,b)
     return zip(corrupt_images, corrupt_videos)
 
 def fix_corrupt(corrupt_paths, data_path, dataset, compression):
