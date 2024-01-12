@@ -13,6 +13,7 @@ import subprocess
 import cv2
 from tqdm import tqdm
 from multiprocessing import Pool
+import shutil
 
 
 DATASET_PATHS = {
@@ -52,6 +53,18 @@ def extract_frames(data_path, output_path, method='cv2'):
     else:
         raise Exception('Wrong extract frames method: {}'.format(method))
 
+def fix_corrupt(data_path, dataset, compression):
+    videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
+    images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
+    videos = ['388_308.mp4', '352_319.mp4', '012_026.mp4', '801_855.mp4', '078_955.mp4', '670_661.mp4', '995_233.mp4', '970_973.mp4', '035_036.mp4', '634_660.mp4', '862_047.mp4', '865_739.mp4', '552_851.mp4', '288_321.mp4']
+
+    data_paths = [join(videos_path, video) for video in videos]
+    output_paths = [join(images_path, video.split('.')[0]) for video in videos]
+    for path in output_paths:
+        shutil.rmtree(path)
+    num_processes = 4
+    with Pool(num_processes) as p:
+        p.starmap(extract_frames, zip(data_paths, output_paths))
 
 def extract_method_videos(data_path, dataset, compression):
     """Extracts all videos of a specified method and compression in the
@@ -82,9 +95,13 @@ if __name__ == '__main__':
                    default='c0')
     args = p.parse_args()
 
-    if args.dataset == 'all':
-        for dataset in DATASET_PATHS.keys():
-            args.dataset = dataset
-            extract_method_videos(**vars(args))
+    corrupt = True # Use this if some videos havent been extracted properly and you need to repeat for single videos
+    if corrupt:
+        fix_corrupt(**vars(args))
     else:
-        extract_method_videos(**vars(args))
+        if args.dataset == 'all':
+            for dataset in DATASET_PATHS.keys():
+                args.dataset = dataset
+                extract_method_videos(**vars(args))
+        else:
+            extract_method_videos(**vars(args))
