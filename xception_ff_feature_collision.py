@@ -90,7 +90,8 @@ def eval_network(network, images_per_video=1, batch_size=100):
         for i, (image, label) in enumerate(test_loader, 0):
             prediction = network(image.cuda())
             for pred in prediction:
-                results_file.write(str(pred[0].item()))
+                print(pred[0].item())
+                results_file.write(str(pred[0].item()) + '\n')
             if i % 100000 == 0:
                 print(prediction)
                 print(label)
