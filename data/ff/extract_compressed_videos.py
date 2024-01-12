@@ -66,6 +66,19 @@ def find_corrupt(data_path, dataset, compression):
                 corrupt_images.append(join(images_path, image_folder))
     return zip(corrupt_videos, corrupt_images)
 
+def find_missing(data_path, dataset, compression):
+    missing_videos = []
+    missing_images = []
+    for dataset in DATASET_PATHS.keys():
+        videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
+        images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
+        videos = os.listdir(videos_path)
+        for video in videos:
+            if not os.path.exists(join(images_path, video.split('.')[0])):
+                missing_videos.append(join(videos_path, video))
+                missing_images.append(join(images_path, video.split('.')[0]))
+    return zip(missing_videos, missing_images)
+
 def fix_corrupt(corrupt_paths):
     for video_path,image_path in corrupt_paths:
         shutil.rmtree(image_path)
@@ -106,7 +119,9 @@ if __name__ == '__main__':
     corrupt = True # Use this if some videos havent been extracted properly and you need to repeat for single videos
     if corrupt:
         corrupt_paths = find_corrupt(**vars(args))
-        fix_corrupt(corrupt_paths)
+        missing_paths = find_missing(**vars(args))
+        print(missing_paths)
+        #fix_corrupt(corrupt_paths)
     else:
         if args.dataset == 'all':
             for dataset in DATASET_PATHS.keys():
