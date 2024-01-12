@@ -62,6 +62,7 @@ def find_corrupt(data_path, dataset, compression):
             random_image = cv2.imread(join(images_path, image_folder, images_in_folder[0]))
             if random_image is None:
                 corrupt_videos.append(join(videos_path, image_folder + '.mp4'))
+    print(len(corrupt_videos))
     return corrupt_videos
 
 def fix_corrupt(data_path, dataset, compression):
