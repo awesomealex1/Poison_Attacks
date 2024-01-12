@@ -93,9 +93,15 @@ def eval_network(network, images_per_video=1, batch_size=100):
                 real_score = pred[0].item()
                 fake_score = pred[1].item()
                 results_file.write(f'{real_score} {fake_score} {label[i].item()} \n')
-            if i % 100000 == 0:
-                print(prediction)
-                print(label)
+                if real_score > fake_score and label == 0:
+                    real_correct += 1
+                elif real_score < fake_score and label == 0:
+                    real_incorrect += 1
+                elif real_score > fake_score and label == 1:
+                    fake_incorrect += 1
+                elif real_score < fake_score and label == 1:
+                    fake_correct += 1
+            print(real_correct, fake_correct, real_incorrect, real_correct)
             pb.update(1)
             torch.cuda.empty_cache()
     pb.close()
