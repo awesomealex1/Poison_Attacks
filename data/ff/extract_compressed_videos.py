@@ -53,10 +53,23 @@ def extract_frames(data_path, output_path, method='cv2'):
     else:
         raise Exception('Wrong extract frames method: {}'.format(method))
 
+def find_corrupt(data_path, dataset, compression):
+    corrupt_videos = []
+    for dataset in DATASET_PATHS.keys():
+        videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
+        images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
+        images = os.listdir(images_path)
+        for image_folder in images:
+            images_in_folder = os.listdir(join(images_path, image_folder))
+            random_image = cv2.imread(images_in_folder[0])
+            if random_image is None:
+                corrupt_videos.append(join(videos_path, image_folder + '.mp4'))
+    return corrupt_videos
+
 def fix_corrupt(data_path, dataset, compression):
     videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
     images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
-    videos = ['842_714.mp4', '467_462.mp4', '367_371.mp4', '386_154.mp4', '048_029.mp4', '695_422.mp4', '625_650.mp4', '821_812.mp4', '220_219.mp4', '953_974.mp4', '682_669.mp4', '949_868.mp4']
+    videos = ['044_945.mp4']
 
     data_paths = [join(videos_path, video) for video in videos]
     output_paths = [join(images_path, video.split('.')[0]) for video in videos]
@@ -97,6 +110,7 @@ if __name__ == '__main__':
 
     corrupt = True # Use this if some videos havent been extracted properly and you need to repeat for single videos
     if corrupt:
+        print(find_corrupt(**vars(args)))
         fix_corrupt(**vars(args))
     else:
         if args.dataset == 'all':
