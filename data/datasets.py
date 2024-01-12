@@ -89,8 +89,9 @@ def fill_bases_directory(image_paths=None):
 
 def prepare_image(image_path, transform):
     img = imread(image_path)
-    print(image_path, 'GGGGGGHGGGEGGRSGSFSF')
-    print(img, 'GGGGGGHGGGEGGRSGSFSF')
+    if img is None:
+        print(f'Could not read image at {image_path}')
+        return None
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = transform(pil_image.fromarray(img))
     img = img.unsqueeze(0)
