@@ -189,7 +189,7 @@ def backward(base, x_hat, beta, lr):
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
 def get_xception():
-    model_path = 'network/weights/xception_face_detection_c23.p'
+    model_path = 'network/weights/xception_full_c23.p'
     cpu = False
     if cpu:
         model = torch.load(model_path, map_location='cpu')
