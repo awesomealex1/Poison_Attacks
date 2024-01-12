@@ -17,13 +17,11 @@ import shutil
 
 
 DATASET_PATHS = {
-    'original_actors': 'original_sequences/actors',
     'original_youtube': 'original_sequences/youtube',
     'Deepfakes': 'manipulated_sequences/Deepfakes',
     'Face2Face': 'manipulated_sequences/Face2Face',
     'FaceSwap': 'manipulated_sequences/FaceSwap',
-    'NeuralTextures': 'manipulated_sequences/NeuralTextures',
-    'FaceShifter': 'manipulated_sequences/FaceShifter'
+    'NeuralTextures': 'manipulated_sequences/NeuralTextures'
 }
 COMPRESSION = ['c0', 'c23', 'c40']
 
