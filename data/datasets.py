@@ -89,6 +89,7 @@ def fill_bases_directory(image_paths=None):
 
 def prepare_image(image_path, transform):
     img = imread(image_path)
+    print(img, 'GGGGGGHGGGEGGRSGSFSF')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = transform(pil_image.fromarray(img))
     img = img.unsqueeze(0)
