@@ -56,7 +56,7 @@ def extract_frames(data_path, output_path, method='cv2'):
 def fix_corrupt(data_path, dataset, compression):
     videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
     images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
-    videos = ['388_308.mp4', '352_319.mp4', '012_026.mp4', '801_855.mp4', '078_955.mp4', '670_661.mp4', '995_233.mp4', '970_973.mp4', '035_036.mp4', '634_660.mp4', '862_047.mp4', '865_739.mp4', '552_851.mp4', '288_321.mp4']
+    videos = ['842_714.mp4', '467_462.mp4', '367_371.mp4', '386_154.mp4', '048_029.mp4', '695_422.mp4', '625_650.mp4', '821_812.mp4', '220_219.mp4', '953_974.mp4', '682_669.mp4', '949_868.mp4']
 
     data_paths = [join(videos_path, video) for video in videos]
     output_paths = [join(images_path, video.split('.')[0]) for video in videos]
