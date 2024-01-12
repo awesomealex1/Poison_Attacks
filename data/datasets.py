@@ -54,7 +54,7 @@ class BaseDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
-        return prepare_image(img_name, xception_default_data_transforms['test']), torch.tensor([1,0])    # Real
+        return prepare_image(img_name, xception_default_data_transforms['test']), 0    # Real
 
 class PoisonDataset(torch.utils.data.Dataset):
     def __init__(self):

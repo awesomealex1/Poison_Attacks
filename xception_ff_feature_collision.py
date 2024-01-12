@@ -74,7 +74,7 @@ def eval_network(network, images_per_video=1, batch_size=100):
 
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
     print('Finished loading Test Set')
 
     fake_correct = 0
@@ -93,6 +93,7 @@ def eval_network(network, images_per_video=1, batch_size=100):
             #predictions.append(prediction)
             if i % 100000 == 0:
                 print(prediction)
+                print(label)
             pb.update(1)
             torch.cuda.empty_cache()
     pb.close()
