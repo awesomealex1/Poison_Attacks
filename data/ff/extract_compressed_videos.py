@@ -64,22 +64,15 @@ def find_corrupt(data_path, dataset, compression):
             if random_image is None:
                 corrupt_videos.append(join(videos_path, image_folder + '.mp4'))
                 corrupt_images.append(join(images_path, image_folder))
-    for a,b in zip(corrupt_images, corrupt_videos):
-        print(a,b)
-    return zip(corrupt_images, corrupt_videos)
+    return zip(corrupt_videos, corrupt_images)
 
-def fix_corrupt(corrupt_paths, data_path, dataset, compression):
-    videos_path = join(data_path, DATASET_PATHS[dataset], compression, 'videos')
-    images_path = join(data_path, DATASET_PATHS[dataset], compression, 'images')
-    videos = ['044_945.mp4']
-
-    data_paths = [join(videos_path, video) for video in videos]
-    output_paths = [join(images_path, video.split('.')[0]) for video in videos]
-    for path in output_paths:
-        shutil.rmtree(path)
+def fix_corrupt(corrupt_paths):
+    for video_path,image_path in corrupt_paths:
+        shutil.rmtree(image_path)
+    
     num_processes = 4
     with Pool(num_processes) as p:
-        p.starmap(extract_frames, zip(data_paths, output_paths))
+        p.starmap(extract_frames, corrupt_paths)
 
 def extract_method_videos(data_path, dataset, compression):
     """Extracts all videos of a specified method and compression in the
@@ -113,7 +106,7 @@ if __name__ == '__main__':
     corrupt = True # Use this if some videos havent been extracted properly and you need to repeat for single videos
     if corrupt:
         corrupt_paths = find_corrupt(**vars(args))
-        #fix_corrupt(corrupt_paths, **vars(args))
+        fix_corrupt(corrupt_paths)
     else:
         if args.dataset == 'all':
             for dataset in DATASET_PATHS.keys():
