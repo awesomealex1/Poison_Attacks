@@ -81,7 +81,8 @@ def find_missing(data_path, dataset, compression):
 
 def fix_corrupt(corrupt_paths):
     for video_path,image_path in corrupt_paths:
-        shutil.rmtree(image_path)
+        if os.path.exists(image_path):
+            shutil.rmtree(image_path)
     
     num_processes = 4
     with Pool(num_processes) as p:
