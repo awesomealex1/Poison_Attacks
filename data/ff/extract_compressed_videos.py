@@ -80,14 +80,18 @@ def find_missing(data_path, dataset, compression):
     return zip(missing_videos, missing_images)
 
 def fix_corrupt(corrupt_paths):
+    video_path2 = []
+    image_path2 = []
     for video_path,image_path in corrupt_paths:
-        print(image_path)
+        print('A:',image_path)
         if os.path.exists(image_path):
             shutil.rmtree(image_path)
+        video_path2.append(video_path)
+        image_path2.append(image_path)
 
     num_processes = 4
     with Pool(num_processes) as p:
-        p.starmap(extract_frames, corrupt_paths)
+        p.starmap(extract_frames, zip(video_path2, image_path2))
 
 def extract_method_videos(data_path, dataset, compression):
     """Extracts all videos of a specified method and compression in the
