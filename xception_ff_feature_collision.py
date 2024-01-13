@@ -74,13 +74,13 @@ def retrain_with_poisons(network):
     return network
 
 def finetune_with_poisons(network):
-    print('Retraining with poisons')
+    print('Finetuning with poisons')
     network = freeze_all_but_last_layer(network)
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
     epochs = 1
-    batch_size = 1
+    batch_size = 64
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
