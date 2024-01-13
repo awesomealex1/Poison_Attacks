@@ -256,7 +256,7 @@ def freeze_all_but_last_layer(network):
     return network
 
 def get_xception_untrained():
-    network = model_selection('xception', num_out_classes=2)
+    network = model_selection('xception', num_out_classes=2)[0]
     network.cuda()
     print(network)
     return network
