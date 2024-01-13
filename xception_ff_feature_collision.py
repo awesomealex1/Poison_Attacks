@@ -258,6 +258,7 @@ def freeze_all_but_last_layer(network):
 def get_xception_untrained():
     network = return_pytorch04_xception()
     network.cuda()
+    print(network)
     return network
 
 if __name__ == "__main__":
