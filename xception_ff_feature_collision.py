@@ -48,18 +48,21 @@ def save_network(network, name):
 def retrain_with_poisons(network):
     print('Retraining with poisons')
 
+    network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
     epochs = 1
     batch_size = 1
     poison_dataset = PoisonDataset()
-    poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
+    train_dataset = TrainDataset()
+    merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
+    data_loader = torch.utils.data.DataLoader(merged_dataset, batch_size=batch_size, shuffle=True)
 
     for epoch in range(epochs):
-        pb = tqdm(total=len(poison_loader))
-        for i, (image, label) in enumerate(poison_loader, 0):
+        pb = tqdm(total=len(data_loader))
+        for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()
-            outputs = network(image)
+            outputs = network(image.cuda())
             loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
