@@ -75,6 +75,7 @@ def retrain_with_poisons(network):
 
 def finetune_with_poisons(network):
     print('Finetuning with poisons')
+    network = torch.nn.DataParallel(network)
     network = freeze_all_but_last_layer(network)
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
