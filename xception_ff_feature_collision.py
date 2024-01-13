@@ -5,7 +5,7 @@ from torchvision.utils import save_image
 import os
 from data.datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
 import json
-from network.models import return_pytorch04_xception
+from network.models import model_selection
 
 def main():
     print('Starting poison attack')
@@ -256,7 +256,7 @@ def freeze_all_but_last_layer(network):
     return network
 
 def get_xception_untrained():
-    network = return_pytorch04_xception()
+    network = model_selection('xception', num_out_classes=2)
     network.cuda()
     print(network)
     return network
