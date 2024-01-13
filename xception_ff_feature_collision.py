@@ -5,6 +5,7 @@ from torchvision.utils import save_image
 import os
 from data.datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
 import json
+from network.models import return_pytorch04_xception
 
 def main():
     print('Starting poison attack')
@@ -252,6 +253,9 @@ def freeze_all_but_last_layer(network):
         for param in layer.parameters():
             param.requires_grad = False
     return network
+
+def get_xception_untrained():
+    return return_pytorch04_xception()
 
 if __name__ == "__main__":
     main()

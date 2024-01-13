@@ -83,7 +83,6 @@ def fix_corrupt(corrupt_paths):
     video_path2 = []
     image_path2 = []
     for video_path,image_path in corrupt_paths:
-        print('A:',image_path)
         if os.path.exists(image_path):
             shutil.rmtree(image_path)
         video_path2.append(video_path)
@@ -120,10 +119,10 @@ if __name__ == '__main__':
                    default='all')
     p.add_argument('--compression', '-c', type=str, choices=COMPRESSION,
                    default='c0')
+    p.add_argument('--corrupt', type=bool, default=False)
     args = p.parse_args()
 
-    corrupt = True # Use this if some videos havent been extracted properly and you need to repeat for single videos
-    if corrupt:
+    if args.corrupt:
         corrupt_paths = find_corrupt(**vars(args))
         missing_paths = find_missing(**vars(args))
         fix_corrupt(corrupt_paths)
