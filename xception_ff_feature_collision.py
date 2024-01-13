@@ -33,7 +33,7 @@ def main():
     print('Before:',predict_image(network, target))
     if evaluate:
         eval_network(network)                           # Evaluate network before retraining
-    network = get_xception_untrained                    # Remove
+    network = get_xception_untrained()                    # Remove
     poisoned_network = finetune_with_poisons(network)    # Retrain network with poisons
     print('After:',predict_image(poisoned_network, target))
     save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
