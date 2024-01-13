@@ -32,7 +32,7 @@ def main():
     print('Before:',predict_image(network, target))
     if evaluate:
         eval_network(network)                           # Evaluate network before retraining
-    poisoned_network = retrain_with_poisons(network)    # Retrain network with poisons
+    poisoned_network = finetune_with_poisons(network)    # Retrain network with poisons
     print('After:',predict_image(poisoned_network, target))
     save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
     eval_network(network)                               # Evaluate network after retraining
@@ -51,6 +51,31 @@ def save_network(network, name):
 def retrain_with_poisons(network):
     print('Retraining with poisons')
 
+    network.train()
+    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    criterion = torch.nn.CrossEntropyLoss()
+    epochs = 1
+    batch_size = 1
+    poison_dataset = PoisonDataset()
+    poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
+
+    for epoch in range(epochs):
+        pb = tqdm(total=len(poison_loader))
+        for i, (image, label) in enumerate(poison_loader, 0):
+            optimizer.zero_grad()
+            outputs = network(image.cuda())
+            loss = criterion(outputs, label.cuda())
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+        pb.close()
+    
+    print('Finished retraining with poisons')
+    return network
+
+def finetune_with_poisons(network):
+    print('Retraining with poisons')
+    network = freeze_all_but_last_layer(network)
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
@@ -219,6 +244,13 @@ def get_feature_space(network):
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
+
+def freeze_all_but_last_layer(network):
+    layer_cake = list(network.model.children())
+    for layer in layer_cake[:-1]:
+        for param in layer.parameters():
+            param.requires_grad = False
+    return network
 
 if __name__ == "__main__":
     main()
