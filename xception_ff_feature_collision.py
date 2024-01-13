@@ -33,6 +33,7 @@ def main():
     print('Before:',predict_image(network, target))
     if evaluate:
         eval_network(network)                           # Evaluate network before retraining
+    network = get_xception_untrained                    # Remove
     poisoned_network = finetune_with_poisons(network)    # Retrain network with poisons
     print('After:',predict_image(poisoned_network, target))
     save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
@@ -255,7 +256,9 @@ def freeze_all_but_last_layer(network):
     return network
 
 def get_xception_untrained():
-    return return_pytorch04_xception()
+    network = return_pytorch04_xception()
+    network.cuda()
+    return network
 
 if __name__ == "__main__":
     main()
