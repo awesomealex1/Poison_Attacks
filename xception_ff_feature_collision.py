@@ -66,7 +66,7 @@ def retrain_with_poisons(network):
         for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()
             outputs = network(image.cuda())
-            loss = criterion(outputs, label)
+            loss = criterion(outputs, label.cuda())
             loss.backward()
             optimizer.step()
             pb.update(1)
