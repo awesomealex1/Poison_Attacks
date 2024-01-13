@@ -81,7 +81,7 @@ def finetune_with_poisons(network):
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
     epochs = 1
-    batch_size = 64
+    batch_size = 128
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
