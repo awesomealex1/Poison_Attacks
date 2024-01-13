@@ -9,6 +9,8 @@ import json
 def main():
     print('Starting poison attack')
 
+    attack = False                          # Whether we need to perform the attack
+    evaluate = False                        # Whether we need to evaluate the network (takes a long time)
     create_bases = False                    # Whether we need to populate the data/bases directory
     max_iters = 200                         # Maximum number of iterations to create one poison
     beta_0 = 0.25                           # beta 0 from poison frogs paper
@@ -24,14 +26,15 @@ def main():
     target = data_util.get_one_fake_ff()
 
     # Perform feature collison attack and create poisons
-    #poisons = feature_coll(feature_space, target, max_iters, beta, lr, network)
-    #save_poisons(poisons)
+    if attack:
+        poisons = feature_coll(feature_space, target, max_iters, beta, lr, network)
+        save_poisons(poisons)
     print('Before:',predict_image(network, target))
-    eval_network(network)                               # Evaluate network before retraining
+    if evaluate:
+        eval_network(network)                           # Evaluate network before retraining
     poisoned_network = retrain_with_poisons(network)    # Retrain network with poisons
     print('After:',predict_image(poisoned_network, target))
     save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
-    #eval_poisons(network, poisons)                      # Evaluate poisons (how they are classified by the network)
     eval_network(network)                               # Evaluate network after retraining
 
 def save_poisons(poisons):
