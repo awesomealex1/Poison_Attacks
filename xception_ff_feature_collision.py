@@ -50,7 +50,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         save_poisons(poisons)
     
     if evaluate:
-        eval_network(network)
+        eval_network(network, device)
     
     print(f'Original target prediction: {predict_image(network, target, device)}')
 
@@ -65,7 +65,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         print(f'Target prediction after retraining: {predict_image(poisoned_network, target, device)}')
     
     save_network(poisoned_network, 'xception_full_c23_poisoned')
-    eval_network(network)
+    eval_network(network, device)
 
 def save_poisons(poisons):
     '''
@@ -187,7 +187,7 @@ def retrain_with_poisons_scratch(network, device):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, batch_size=100, device):
+def eval_network(network, device, batch_size=100):
     '''
     Evaluates the network performance on test set.
     Args:
