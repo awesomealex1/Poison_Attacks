@@ -1,1 +1,1 @@
-python xception_ff_feature_collison.py 
+python xception_ff_feature_collision.py
