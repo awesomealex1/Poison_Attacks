@@ -6,40 +6,60 @@ import os
 from data.datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
 import json
 from network.models import model_selection
+import argparse
 
-def main():
+def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch):
+    '''
+    Main function to run a poisoning attack on the Xception network.
+    Args:
+        device: cuda or cpu
+        create_poison: Whether to create poisons
+        retrain: Whether to retrain the network with poisons
+        create_bases: Whether to populate the data/bases directory
+        max_iters: Maximum number of iterations to create one poison
+        beta_0: beta 0 from poison frogs paper
+        lr: Learning rate for poison creation
+        evaluate: Whether to evaluate the network (takes a long time)
+        pretrained: Whether to use FF++ provided pretrained network
+        retrain_scratch: Whether to retrain from scratch
+    Does not return anything but will create files with data and prints results.
+    '''
     print('Starting poison attack')
 
-    attack = False                          # Whether we need to perform the attack
-    evaluate = False                        # Whether we need to evaluate the network (takes a long time)
-    create_bases = False                    # Whether we need to populate the data/bases directory
-    max_iters = 200                         # Maximum number of iterations to create one poison
-    beta_0 = 0.25                           # beta 0 from poison frogs paper
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
-    lr = 0.001                              # Learning rate for poison creation
-
     if create_bases:
         fill_bases_directory()
 
-    # Prepare network and data
-    network = get_xception()
+    if pretrained:
+        network = get_xception_full()
+    else:
+        network = get_xception_untrained()
+
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
 
     # Perform feature collison attack and create poisons
-    if attack:
+    if create_poison:
         poisons = feature_coll(feature_space, target, max_iters, beta, lr, network)
         save_poisons(poisons)
+    
     print('Before:',predict_image(network, target))
     if evaluate:
         eval_network(network)                           # Evaluate network before retraining
-    network = get_xception_untrained()                    # Remove
-    poisoned_network = finetune_with_poisons(network)    # Retrain network with poisons
-    print('After:',predict_image(poisoned_network, target))
-    save_network(poisoned_network, 'xception_face_detection_c23_poisoned')
+    if retrain_scratch:
+        network = get_xception_untrained()                    # Remove
+    if retrain:
+        poisoned_network = retrain_with_poisons_scratch(network)    # Retrain network with poisons
+        print('After:',predict_image(poisoned_network, target))
+    save_network(poisoned_network, 'xception_full_c23_poisoned')
     eval_network(network)                               # Evaluate network after retraining
 
 def save_poisons(poisons):
+    '''
+    Saves poisons to data/poisons directory.
+    Args:
+        poisons: List of images
+    '''
     print('Saving poisons')
     os.makedirs('data/poisons', exist_ok=True)
     for i, poison in enumerate(poisons):
@@ -47,12 +67,55 @@ def save_poisons(poisons):
     print('Finished saving poisons')
 
 def save_network(network, name):
+    '''
+    Saves network to network/weights directory.
+    Args:
+        network: Network to save
+        name: Name to save as
+    '''
     torch.save(network, f'network/weights/{name}.p')
     print(f'Saved network as {name}')
 
-def retrain_with_poisons(network):
-    print('Retraining with poisons')
+def train_on_ff(network):
+    '''
+    Trains the network on FF++ dataset.
+    Args:
+        network: Network to train
+    Returns:
+        network: Trained network
+    '''
+    print('Training on FF++')
+    network = freeze_all_but_last_layer(network)
+    network.train()
+    network = torch.nn.DataParallel(network)
+    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    criterion = torch.nn.CrossEntropyLoss()
+    epochs = 1
+    batch_size = 128
+    train_dataset = TrainDataset()
+    data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
+    for epoch in range(epochs):
+        pb = tqdm(total=len(data_loader))
+        for i, (image, label) in enumerate(data_loader, 0):
+            optimizer.zero_grad()
+            outputs = network(image.cuda())
+            loss = criterion(outputs, label.cuda())
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+        pb.close()
+    
+    print('Finished training on FF++')
+    return network
+
+def retrain_with_poisons(network):
+    '''
+    Retrains the network with poisons. Not from scratch, but already trained on FF++.
+    Args:
+        network: Retrained network
+    '''
+    print('Retraining with poisons')
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
@@ -75,8 +138,13 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def finetune_with_poisons(network):
-    print('Finetuning with poisons')
+def retrain_with_poisons_scratch(network):
+    '''
+    Retrains with poisons from scratch (not trained on FF++).
+    Args:
+        network: Retrained network
+    '''
+    print('Retraining with poisons from scratch')
     network = freeze_all_but_last_layer(network)
     network.train()
     network = torch.nn.DataParallel(network)
@@ -103,9 +171,20 @@ def finetune_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, images_per_video=1, batch_size=100):
+def eval_network(network, batch_size=100):
+    '''
+    Evaluates the network performance on test set.
+    Args:
+        network: Network to evaluate
+        batch_size: Batch size for evaluation
+    Returns:
+        fake_correct: Number of fake images correctly classified
+        fake_incorrect: Number of fake images incorrectly classified
+        real_correct: Number of real images correctly classified
+        real_incorrect: Number of real images incorrectly classified
+    Also writes results to results.txt
+    '''
     print('Evaluating network')
-
     print('Loading Test Set')
     test_dataset = TestDataset()
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
@@ -145,6 +224,15 @@ def eval_network(network, images_per_video=1, batch_size=100):
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
 def predict_image(network, image):
+    '''
+    Predicts the label of an input image.
+    Args:
+        image: numpy image
+        network: torch model with linear layer at the end
+    Returns:
+        prediction (1 = fake, 0 = real)
+        output: Output of network
+    '''
     post_function = torch.nn.Softmax(dim = 1)
     output = network(image.cuda())
     output = post_function(output)
@@ -159,10 +247,19 @@ def predict_image(network, image):
 
     return int(prediction), output  # If prediction is 1, then fake, else real
 
-def eval_poisons(network, poisons):
-    pass
-
 def feature_coll(feature_space, target, max_iters, beta, lr, network):
+    '''
+    Performs feature collision attack on the target image.
+    Args:
+        feature_space: Feature space of network
+        target: Target image
+        max_iters: Maximum number of iterations to create one poison
+        beta: Beta value for feature collision attack
+        lr: Learning rate for poison creation
+        network: Network to attack
+    Returns:
+        poisons: List of poisons
+    '''
     poisons = []
     base_dataset = BaseDataset()
     base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
@@ -173,6 +270,21 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network):
     return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, decay_coef=0.9, M=20):
+    '''
+    Creates a single poison.
+    Args:
+        feature_space: Feature space of network
+        target: Target image
+        base: Base image
+        max_iters: Maximum number of iterations to create one poison
+        beta: Beta value for feature collision attack
+        lr: Learning rate for poison creation
+        network: Network to attack
+        decay_coef: Decay coefficient for learning rate
+        M: Number of previous objectives to average over (used for learning rate decay)
+    Returns:
+        x: Poison image
+    '''
     x = base
     prev_x = base
     prev_M_objectives = []
@@ -205,11 +317,33 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dec
     return x
 
 def forward_backward(feature_space, target, base, x, beta, lr):
+    '''
+    Performs forward and backward passes.
+    Args:
+        feature_space: Feature space of network
+        target: Target image
+        base: Base image
+        x: Current poison image
+        beta: Beta value for feature collision attack
+        lr: Learning rate for poison creation
+    Returns:
+        new_x: New poison image
+    '''
     x_hat = forward(feature_space, target, x, lr)
     new_x = backward(base, x_hat, beta, lr)
     return new_x
 
 def forward(feature_space, target, x, lr):
+    '''
+    Performs forward pass.
+    Args:
+        feature_space: Feature space of network
+        target: Target image
+        x: Current poison image
+        lr: Learning rate for poison creation
+    Returns:
+        x_hat: New poison image
+    '''
     detached_x = x.detach()  # Detach x from the computation graph
     x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 
@@ -226,9 +360,24 @@ def forward(feature_space, target, x, lr):
     return x_hat
 
 def backward(base, x_hat, beta, lr):
+    '''
+    Performs backward pass.
+    Args:
+        base: Base image
+        x_hat: New poison image
+        beta: Beta value for feature collision attack
+        lr: Learning rate for poison creation
+    Returns:
+        new_x: New poison image
+    '''
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
-def get_xception():
+def get_xception_full():
+    '''
+    Returns the pretrained full image xception network.
+    Returns:
+        model: Pretrained full image xception network
+    '''
     model_path = 'network/weights/xception_full_c23.p'
     cpu = False
     if cpu:
@@ -239,16 +388,32 @@ def get_xception():
     return model
 
 class Flatten(torch.nn.Module):
+    '''Layer used for flattening the network.'''
     def forward(self, input):
         return input.view(input.size(0), -1)
 
 def get_feature_space(network):
+    '''
+    Returns the feature space of the network.
+    Args:
+        network: Network to get feature space of
+    Returns:
+        headless_network: Network without last layer
+        last_layer: Last layer of network
+    '''
     layer_cake = list(network.model.children())
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
 
 def freeze_all_but_last_layer(network):
+    '''
+    Freezes all but the last layer of the network.
+    Args:
+        network: Network to freeze
+    Returns:
+        network: Network with all but last layer frozen
+    '''
     layer_cake = list(network.model.children())
     for layer in layer_cake[:-1]:
         for param in layer.parameters():
@@ -256,10 +421,37 @@ def freeze_all_but_last_layer(network):
     return network
 
 def get_xception_untrained():
+    '''
+    Returns an untrained xception network.
+    Returns:
+        network: Untrained xception network
+    '''
     network = model_selection('xception', num_out_classes=2)[0]
     network.cuda()
-    print(network)
     return network
 
 if __name__ == "__main__":
-    main()
+    p = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p.add_argument('--create_poison', type=bool, help='Whether attack should be performed to create poison samples', default=True)
+    p.add_argument('--gpu', type=bool, help='Whether to use gpu', default=True)
+    p.add_argument('--retrain', type=bool, help='Whether to retrain the network with poisons', default=True)
+    p.add_argument('--evaluate', type=bool, help='Whether to evaluate network', default=True)
+    p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.25)
+    p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=200)
+    p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.001)
+    p.add_argument('--create_bases', type=bool, help='Whether to populate the data/bases directory', default=False)
+    p.add_argument('--pretrained', type=bool, help='Whether to use FF++ provided pretrained network', default=True)
+    p.add_argument('--retrain_scratch', type=bool, help='Whether to retrain from scratch', default=False)
+    args = p.parse_args()
+
+    if args.gpu is None:
+        args.gpu = torch.cuda.is_available()
+    elif args.gpu == True:
+        if not torch.cuda.is_available():
+            print('GPU not available, falling back to CPU')
+            args.gpu = False
+    
+    device = torch.device('cuda' if args.gpu else 'cpu')
+
+    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch)
