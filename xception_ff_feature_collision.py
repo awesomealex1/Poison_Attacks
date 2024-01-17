@@ -27,32 +27,45 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     print('Starting poison attack')
 
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
+
     if create_bases:
         fill_bases_directory()
 
     if pretrained:
-        network = get_xception_full()
+        network = get_xception_full(device)
     else:
         network = get_xception_untrained()
+    network.to(device)
+
+    if not pretrained:
+        network = train_on_ff(network, device)
+        save_network(network, 'xception_full_c23_trained_from_scratch')
 
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
+    target = target.to(device)
 
-    # Perform feature collison attack and create poisons
     if create_poison:
-        poisons = feature_coll(feature_space, target, max_iters, beta, lr, network)
+        poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
         save_poisons(poisons)
     
-    print('Before:',predict_image(network, target))
     if evaluate:
-        eval_network(network)                           # Evaluate network before retraining
+        eval_network(network)
+    
+    print(f'Original target prediction: {predict_image(network, target, device)}')
+
     if retrain_scratch:
-        network = get_xception_untrained()                    # Remove
-    if retrain:
-        poisoned_network = retrain_with_poisons_scratch(network)    # Retrain network with poisons
-        print('After:',predict_image(poisoned_network, target))
+        network = get_xception_untrained()
+    
+    if retrain_scratch:
+        poisoned_network = retrain_with_poisons_scratch(network, device)
+        print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
+    elif retrain:
+        poisoned_network = retrain_with_poisons(network, device)
+        print(f'Target prediction after retraining: {predict_image(poisoned_network, target, device)}')
+    
     save_network(poisoned_network, 'xception_full_c23_poisoned')
-    eval_network(network)                               # Evaluate network after retraining
+    eval_network(network)
 
 def save_poisons(poisons):
     '''
@@ -76,7 +89,7 @@ def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
     print(f'Saved network as {name}')
 
-def train_on_ff(network):
+def train_on_ff(network, device):
     '''
     Trains the network on FF++ dataset.
     Args:
@@ -99,8 +112,9 @@ def train_on_ff(network):
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()
-            outputs = network(image.cuda())
-            loss = criterion(outputs, label.cuda())
+            image,label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
             pb.update(1)
@@ -109,7 +123,7 @@ def train_on_ff(network):
     print('Finished training on FF++')
     return network
 
-def retrain_with_poisons(network):
+def retrain_with_poisons(network, device):
     '''
     Retrains the network with poisons. Not from scratch, but already trained on FF++.
     Args:
@@ -128,8 +142,9 @@ def retrain_with_poisons(network):
         pb = tqdm(total=len(poison_loader))
         for i, (image, label) in enumerate(poison_loader, 0):
             optimizer.zero_grad()
-            outputs = network(image.cuda())
-            loss = criterion(outputs, label.cuda())
+            image, label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
             pb.update(1)
@@ -138,7 +153,7 @@ def retrain_with_poisons(network):
     print('Finished retraining with poisons')
     return network
 
-def retrain_with_poisons_scratch(network):
+def retrain_with_poisons_scratch(network, device):
     '''
     Retrains with poisons from scratch (not trained on FF++).
     Args:
@@ -161,8 +176,9 @@ def retrain_with_poisons_scratch(network):
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()
-            outputs = network(image.cuda())
-            loss = criterion(outputs, label.cuda())
+            image,label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
             pb.update(1)
@@ -171,7 +187,7 @@ def retrain_with_poisons_scratch(network):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, batch_size=100):
+def eval_network(network, batch_size=100, device):
     '''
     Evaluates the network performance on test set.
     Args:
@@ -201,7 +217,8 @@ def eval_network(network, batch_size=100):
     pb = tqdm(total=len(test_loader))
     with torch.no_grad():
         for i, (image, label) in enumerate(test_loader, 0):
-            prediction = network(image.cuda())
+            image, label = image.to(device), label.to(device)
+            prediction = network(image)
             for i, pred in enumerate(prediction, 0):
                 real_score = pred[0].item()
                 fake_score = pred[1].item()
@@ -215,7 +232,8 @@ def eval_network(network, batch_size=100):
                 elif real_score < fake_score and label[i].item() == 1:
                     fake_correct += 1
             pb.update(1)
-            torch.cuda.empty_cache()
+            if device.type == 'cuda':
+                torch.cuda.empty_cache()
     pb.close()
     results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect}')
     results_file.close()
@@ -223,7 +241,7 @@ def eval_network(network, batch_size=100):
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
-def predict_image(network, image):
+def predict_image(network, image, device):
     '''
     Predicts the label of an input image.
     Args:
@@ -234,20 +252,14 @@ def predict_image(network, image):
         output: Output of network
     '''
     post_function = torch.nn.Softmax(dim = 1)
-    output = network(image.cuda())
+    image = image.to(device)
+    output = network(image)
     output = post_function(output)
-
-    # Cast to desired
     _, prediction = torch.max(output, 1)    # argmax
-    cpu = True
-    if cpu:
-        prediction = float(prediction.cpu().numpy())
-    else:
-        prediction = float(prediction.numpy())
 
-    return int(prediction), output  # If prediction is 1, then fake, else real
+    return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
-def feature_coll(feature_space, target, max_iters, beta, lr, network):
+def feature_coll(feature_space, target, max_iters, beta, lr, network, device):
     '''
     Performs feature collision attack on the target image.
     Args:
@@ -264,12 +276,13 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network):
     base_dataset = BaseDataset()
     base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
     for i, (base,label) in enumerate(base_loader, 1):
-        poison = single_poison(feature_space, target, base, max_iters, beta, lr, network)
+        base, label = base.to(device), label.to(device)
+        poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
         poisons.append(poison)
         print(f'Poison {i}/{len(base_dataset)} created')
     return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, decay_coef=0.9, M=20):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
     '''
     Creates a single poison.
     Args:
@@ -291,10 +304,10 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dec
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
-        print(predict_image(network, x))
+        print(f'Poison prediction: {predict_image(network, x, device)}')
         target_space = feature_space(target)
         x_space = feature_space(x)
-        print(torch.norm(x_space - target_space))
+        print(f'Poison-target distance: {torch.norm(x_space - target_space)}')
 
         new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
@@ -372,20 +385,24 @@ def backward(base, x_hat, beta, lr):
     '''
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
-def get_xception_full():
+def get_xception_full(device):
     '''
     Returns the pretrained full image xception network.
     Returns:
         model: Pretrained full image xception network
     '''
     model_path = 'network/weights/xception_full_c23.p'
-    cpu = False
-    if cpu:
-        model = torch.load(model_path, map_location='cpu')
-    else:
-        model = torch.load(model_path)
-        model.cuda()
+    model = torch.load(model_path, map_location=device)
     return model
+
+def get_xception_untrained():
+    '''
+    Returns an untrained xception network.
+    Returns:
+        network: Untrained xception network
+    '''
+    network = model_selection('xception', num_out_classes=2)[0]
+    return network
 
 class Flatten(torch.nn.Module):
     '''Layer used for flattening the network.'''
@@ -418,16 +435,6 @@ def freeze_all_but_last_layer(network):
     for layer in layer_cake[:-1]:
         for param in layer.parameters():
             param.requires_grad = False
-    return network
-
-def get_xception_untrained():
-    '''
-    Returns an untrained xception network.
-    Returns:
-        network: Untrained xception network
-    '''
-    network = model_selection('xception', num_out_classes=2)[0]
-    network.cuda()
     return network
 
 if __name__ == "__main__":
