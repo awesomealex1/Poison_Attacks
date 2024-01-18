@@ -8,7 +8,7 @@ import json
 from network.models import model_selection
 import argparse
 
-def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch):
+def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases):
     '''
     Main function to run a poisoning attack on the Xception network.
     Args:
@@ -22,6 +22,9 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         evaluate: Whether to evaluate the network (takes a long time)
         pretrained: Whether to use FF++ provided pretrained network
         retrain_scratch: Whether to retrain from scratch
+        preselected_bases: Whether to use a txt file with base images
+        max_base_distance: Maximum distance between base and target (when not having preselected bases)
+        n_bases: Number of base images to create (when not having preselected bases)
     Does not return anything but will create files with data and prints results.
     '''
     print('Starting poison attack')
@@ -46,6 +49,8 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     target = target.to(device)
 
     if create_poison:
+        if not preselected_bases:
+            create_bases(max_base_distance, n_bases)
         poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
         save_poisons(poisons)
     
@@ -89,6 +94,9 @@ def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
     print(f'Saved network as {name}')
 
+def create_bases(max_base_distance, n_bases):
+    pass
+
 def train_on_ff(network, device):
     '''
     Trains the network on FF++ dataset.
@@ -102,7 +110,8 @@ def train_on_ff(network, device):
     network.train()
     network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    criterion = torch.nn.CrossEntropyLoss()
+    weight = torch.tensor([4, 1])
+    criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 128
     train_dataset = TrainDataset()
@@ -132,7 +141,8 @@ def retrain_with_poisons(network, device):
     print('Retraining with poisons')
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    criterion = torch.nn.CrossEntropyLoss()
+    weight = torch.tensor([4, 1])
+    criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 1
     poison_dataset = PoisonDataset()
@@ -164,7 +174,8 @@ def retrain_with_poisons_scratch(network, device):
     network.train()
     network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    criterion = torch.nn.CrossEntropyLoss()
+    weight = torch.tensor([4, 1])
+    criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 128
     poison_dataset = PoisonDataset()
@@ -450,6 +461,9 @@ if __name__ == "__main__":
     p.add_argument('--create_bases', type=bool, help='Whether to populate the data/bases directory', default=False)
     p.add_argument('--pretrained', type=bool, help='Whether to use FF++ provided pretrained network', default=True)
     p.add_argument('--retrain_scratch', type=bool, help='Whether to retrain from scratch', default=False)
+    p.add_argument('--preselected_bases', type=bool, help='Whether to use a txt file with base images', default=True)
+    p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=500)
+    p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     args = p.parse_args()
 
     if args.gpu is None:
@@ -461,4 +475,4 @@ if __name__ == "__main__":
     
     device = torch.device('cuda' if args.gpu else 'cpu')
 
-    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch)
+    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases)
