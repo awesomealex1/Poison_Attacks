@@ -111,7 +111,7 @@ def train_on_ff(network, device):
     network.train()
     network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4, 1]).to(device)
+    weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 128
