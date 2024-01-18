@@ -41,7 +41,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
 
     if not pretrained:
         network = train_on_ff(network, device)
-        save_network(network, 'xception_full_c23_trained_from_scratch')
+        save_network(network, 'xception_full_c23_trained_from_scratch2')
 
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
@@ -95,8 +95,18 @@ def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
     print(f'Saved network as {name}')
 
-def create_bases(max_base_distance, n_bases):
-    pass
+def create_bases(max_base_distance, min_base_score, n_bases, feature_space, target, network):
+    base_images = []
+    train_dataset = TrainDataset()
+    target_feature = feature_space(target)
+    data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
+    for i, (image, label) in enumerate(data_loader, 0):
+        image,label = image.to(device), label.to(device)
+        if label.item() == 0:   # If real
+            image_features = feature_space(image)
+            _, image_score = predict_image(network, image, device)
+
+        outputs = network(image)
 
 def train_on_ff(network, device):
     '''
@@ -109,7 +119,7 @@ def train_on_ff(network, device):
     print('Training on FF++')
     network = freeze_all_but_last_layer(network)
     network.train()
-    network = torch.nn.DataParallel(network)
+    #network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
@@ -142,7 +152,7 @@ def retrain_with_poisons(network, device):
     print('Retraining with poisons')
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4, 1])
+    weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 1
@@ -175,7 +185,7 @@ def retrain_with_poisons_scratch(network, device):
     network.train()
     network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4, 1])
+    weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 128
@@ -464,6 +474,7 @@ if __name__ == "__main__":
     p.add_argument('--retrain_scratch', action='store_true', help='Whether to retrain from scratch')
     p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
     p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=500)
+    p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
     p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     args = p.parse_args()
 
