@@ -1,0 +1,1 @@
+python xception_ff_feature_collision.py --pretrained False --retrain_scratch True --evaluate False --create_poison False
