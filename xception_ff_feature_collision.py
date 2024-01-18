@@ -28,7 +28,6 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     Does not return anything but will create files with data and prints results.
     '''
     print('Starting poison attack')
-    return None
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 
     if create_bases:
@@ -453,17 +452,17 @@ def freeze_all_but_last_layer(network):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    p.add_argument('--create_poison', type=bool, help='Whether attack should be performed to create poison samples', default=True)
-    p.add_argument('--gpu', type=bool, help='Whether to use gpu', default=True)
-    p.add_argument('--retrain', type=bool, help='Whether to retrain the network with poisons', default=True)
-    p.add_argument('--evaluate', type=bool, help='Whether to evaluate network', default=True)
+    p.add_argument('--create_poison', action='store_true', help='Whether attack should be performed to create poison samples', default=True)
+    p.add_argument('--gpu', action='store_true', help='Whether to use gpu', default=True)
+    p.add_argument('--retrain', action='store_true', help='Whether to retrain the network with poisons', default=True)
+    p.add_argument('--evaluate', action='store_true', help='Whether to evaluate network', default=True)
     p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.25)
     p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=200)
     p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.001)
-    p.add_argument('--create_bases', type=bool, help='Whether to populate the data/bases directory', default=False)
-    p.add_argument('--pretrained', type=bool, help='Whether to use FF++ provided pretrained network', default=True)
-    p.add_argument('--retrain_scratch', type=bool, help='Whether to retrain from scratch', default=False)
-    p.add_argument('--preselected_bases', type=bool, help='Whether to use a txt file with base images', default=True)
+    p.add_argument('--create_bases', action='store_true', help='Whether to populate the data/bases directory', default=False)
+    p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network', default=True)
+    p.add_argument('--retrain_scratch', action='store_true', help='Whether to retrain from scratch', default=False)
+    p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images', default=True)
     p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=500)
     p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     args = p.parse_args()
