@@ -124,6 +124,7 @@ def train_on_ff(network, device):
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
+            print(outputs.get_device(), label.get_device())
             loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
