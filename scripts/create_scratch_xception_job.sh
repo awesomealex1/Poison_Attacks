@@ -12,7 +12,7 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 
 # Load Python
 module load anaconda
-conda activate ff
+conda activate ff-gpu
 
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_scratch_xception.sh
