@@ -28,7 +28,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     Does not return anything but will create files with data and prints results.
     '''
     print('Starting poison attack')
-
+    return None
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 
     if create_bases:
