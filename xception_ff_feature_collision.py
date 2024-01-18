@@ -111,7 +111,7 @@ def train_on_ff(network, device):
     network.train()
     network = torch.nn.DataParallel(network)
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4, 1])
+    weight = torch.tensor([4, 1]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 1
     batch_size = 128
@@ -124,7 +124,6 @@ def train_on_ff(network, device):
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
-            print(outputs.get_device(), label.get_device())
             loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
