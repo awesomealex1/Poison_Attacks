@@ -48,6 +48,8 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     target = data_util.get_one_fake_ff()
     target = target.to(device)
 
+    print(create_poison)
+
     if create_poison:
         if not preselected_bases:
             create_bases(max_base_distance, n_bases)
@@ -474,5 +476,7 @@ if __name__ == "__main__":
             args.gpu = False
     
     device = torch.device('cuda' if args.gpu else 'cpu')
+
+    print(args.create_poison)
 
     main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases)
