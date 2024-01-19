@@ -8,7 +8,7 @@ import json
 from network.models import model_selection
 import argparse
 
-def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases):
+def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases, model_path):
     '''
     Main function to run a poisoning attack on the Xception network.
     Args:
@@ -35,19 +35,19 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
 
     if pretrained:
         network = get_xception_full(device)
+    elif model_path:
+        network = torch.load(model_path, map_location=device)
     else:
         network = get_xception_untrained()
     network.to(device)
 
-    if not pretrained:
+    if not pretrained and model_path == None:
         network = train_on_ff(network, device)
         save_network(network, 'xception_full_c23_trained_from_scratch2')
 
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
     target = target.to(device)
-
-    print(create_poison)
 
     if create_poison:
         if not preselected_bases:
@@ -476,6 +476,7 @@ if __name__ == "__main__":
     p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=500)
     p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
     p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
+    p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
     args = p.parse_args()
 
     use_gpu = not args.cpu
@@ -487,4 +488,4 @@ if __name__ == "__main__":
     
     device = torch.device('cuda' if use_gpu else 'cpu')
 
-    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases)
+    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases, args.model_path)
