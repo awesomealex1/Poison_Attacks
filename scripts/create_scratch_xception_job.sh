@@ -2,7 +2,7 @@
 # Grid Engine options (lines prefixed with #$)
 #$ -N create_scratch_xception          
 #$ -cwd                  
-#$ -l h_rt=16:00:00 
+#$ -l h_rt=48:00:00 
 #$ -l h_vmem=40G
 #$ -q gpu 
 #$ -pe gpu-a100 1

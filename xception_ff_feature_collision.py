@@ -123,7 +123,7 @@ def train_on_ff(network, device):
     optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    epochs = 1
+    epochs = 3
     batch_size = 128
     train_dataset = TrainDataset()
     data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -139,6 +139,25 @@ def train_on_ff(network, device):
             optimizer.step()
             pb.update(1)
         pb.close()
+
+        save_network(network, f'xception_full_c23_trained_from_scratch_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_{epoch}')
+    
+    network = unfreeze_all(network)
+    epochs_2 = 6
+    for epoch in range(epochs):
+        pb = tqdm(total=len(data_loader))
+        for i, (image, label) in enumerate(data_loader, 0):
+            optimizer.zero_grad()
+            image,label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+        pb.close()
+        save_network(network, f'xception_full_c23_trained_from_scratch2_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch2_{epoch}')
     
     print('Finished training on FF++')
     return network
@@ -209,7 +228,7 @@ def retrain_with_poisons_scratch(network, device):
     print('Finished retraining with poisons')
     return network
 
-def eval_network(network, device, batch_size=100):
+def eval_network(network, device, batch_size=100, file_name='results.txt'):
     '''
     Evaluates the network performance on test set.
     Args:
@@ -226,6 +245,7 @@ def eval_network(network, device, batch_size=100):
     print('Loading Test Set')
     test_dataset = TestDataset()
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    criterion = torch.nn.CrossEntropyLoss()
     print('Finished loading Test Set')
 
     fake_correct = 0
@@ -234,13 +254,15 @@ def eval_network(network, device, batch_size=100):
     real_incorrect = 0
 
     print('Starting evaluation')
-    results_file = open('results.txt', 'w')
+    results_file = open(file_name, 'w')
     network.eval()
     pb = tqdm(total=len(test_loader))
+    total_loss = 0.0
     with torch.no_grad():
         for i, (image, label) in enumerate(test_loader, 0):
             image, label = image.to(device), label.to(device)
             prediction = network(image)
+            loss = criterion(prediction, label)
             for i, pred in enumerate(prediction, 0):
                 real_score = pred[0].item()
                 fake_score = pred[1].item()
@@ -253,14 +275,15 @@ def eval_network(network, device, batch_size=100):
                     fake_incorrect += 1
                 elif real_score < fake_score and label[i].item() == 1:
                     fake_correct += 1
+            total_loss += loss.item()
             pb.update(1)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
     pb.close()
-    results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect}')
+    results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect} {total_loss}')
     results_file.close()
 
-    print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect)
+    print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
 def predict_image(network, image, device):
@@ -458,6 +481,14 @@ def freeze_all_but_last_layer(network):
         for param in layer.parameters():
             param.requires_grad = False
     return network
+
+def unfreeze_all(network):
+    layer_cake = list(network.model.children())
+    for layer in layer_cake:
+        for param in layer.parameters():
+            param.requires_grad = True
+    return network
+
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(
