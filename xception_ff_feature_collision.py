@@ -60,7 +60,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         eval_network(network, device)
     
     original_prediction = predict_image(network, target, device)
-    print(f'Original target prediction: {original_prediction}')
+    print('Original target prediction:',original_prediction)
 
     if retrain_scratch:
         network = get_xception_untrained()
