@@ -41,7 +41,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         network = get_xception_untrained()
     network.to(device)
 
-    if not pretrained and model_path == None:
+    if not pretrained:
         #network = train_on_ff(network, device)
         network = train_on_ff_unfrozen(network, device)
         save_network(network, 'xception_full_c23_trained_from_scratch2_full')
