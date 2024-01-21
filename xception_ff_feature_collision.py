@@ -42,8 +42,9 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     network.to(device)
 
     if not pretrained and model_path == None:
-        network = train_on_ff(network, device)
-        save_network(network, 'xception_full_c23_trained_from_scratch2')
+        #network = train_on_ff(network, device)
+        network = train_on_ff_unfrozen(network, device)
+        save_network(network, 'xception_full_c23_trained_from_scratch2_full')
 
     feature_space, last_layer = get_feature_space(network)
     target = data_util.get_one_fake_ff()
@@ -144,7 +145,47 @@ def train_on_ff(network, device):
         eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_{epoch}')
     
     network = unfreeze_all(network)
+    batch_size_2 = 32
     epochs_2 = 6
+    data_loader_2 = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_2, shuffle=True)
+
+    for epoch in range(epochs_2):
+        pb = tqdm(total=len(data_loader))
+        for i, (image, label) in enumerate(data_loader_2, 0):
+            optimizer.zero_grad()
+            image,label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+        pb.close()
+        save_network(network, f'xception_full_c23_trained_from_scratch2_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch2_{epoch}')
+    
+    print('Finished training on FF++')
+    return network
+
+def train_on_ff_unfrozen(network, device):
+    '''
+    Trains the unfrozen network on FF++ dataset.
+    Args:
+        network: Network to train
+        device: cuda or cpu
+    Returns:
+        network: Trained network
+    '''
+    print('Training on FF++')
+    network = unfreeze_all(network)
+    network.train()
+    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    weight = torch.tensor([4.0, 1.0]).to(device)
+    criterion = torch.nn.CrossEntropyLoss(weight=weight)
+    batch_size = 32
+    epochs = 6
+    train_dataset = TrainDataset()
+    data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
     for epoch in range(epochs):
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
@@ -156,8 +197,8 @@ def train_on_ff(network, device):
             optimizer.step()
             pb.update(1)
         pb.close()
-        save_network(network, f'xception_full_c23_trained_from_scratch2_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch2_{epoch}')
+        save_network(network, f'xception_full_c23_trained_from_scratch_unfrozen_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_unfrozen_{epoch}')
     
     print('Finished training on FF++')
     return network
