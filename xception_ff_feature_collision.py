@@ -67,10 +67,10 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     
     if retrain_scratch:
         poisoned_network = retrain_with_poisons_scratch(network, device)
-        print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
+        print('Target prediction after retraining from scratch:',predict_image(poisoned_network, target, device))
     elif retrain:
         poisoned_network = retrain_with_poisons(network, device)
-        print(f'Target prediction after retraining: {predict_image(poisoned_network, target, device)}')
+        print('Target prediction after retraining:', predict_image(poisoned_network, target, device))
     
     save_network(poisoned_network, 'xception_full_c23_poisoned')
     eval_network(network, device)
