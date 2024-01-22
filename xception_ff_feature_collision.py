@@ -86,11 +86,7 @@ def create_bases(max_base_distance, min_base_score, n_bases, feature_space, targ
         outputs = network(image)
 
 def retrain_with_poisons(network, device):
-    '''
-    Retrains the network with poisons. Not from scratch, but already trained on FF++.
-    Args:
-        network: Retrained network
-    '''
+    '''Retrains the network with poisons. Not from scratch, but already trained on FF++.'''
     print('Retraining with poisons')
     poison_dataset = PoisonDataset()
     network = train_on_ff(network, device, dataset=poison_dataset, name='xception_full_c23_trained_from_scratch_poisoned', frozen=False, epochs=1)   
@@ -99,11 +95,7 @@ def retrain_with_poisons(network, device):
     return network
 
 def retrain_with_poisons_scratch(network, device):
-    '''
-    Retrains with poisons from scratch (not trained on FF++).
-    Args:
-        network: Retrained network
-    '''
+    '''Retrains with poisons from scratch (not trained on FF++).'''
     print('Retraining with poisons from scratch')
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
@@ -113,18 +105,7 @@ def retrain_with_poisons_scratch(network, device):
     return network
 
 def eval_network(network, device, batch_size=100, file_name='results.txt'):
-    '''
-    Evaluates the network performance on test set.
-    Args:
-        network: Network to evaluate
-        batch_size: Batch size for evaluation
-    Returns:
-        fake_correct: Number of fake images correctly classified
-        fake_incorrect: Number of fake images incorrectly classified
-        real_correct: Number of real images correctly classified
-        real_incorrect: Number of real images incorrectly classified
-    Also writes results to results.txt
-    '''
+    '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     print('Loading Test Set')
     test_dataset = TestDataset()
@@ -259,33 +240,13 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     return x
 
 def forward_backward(feature_space, target, base, x, beta, lr):
-    '''
-    Performs forward and backward passes.
-    Args:
-        feature_space: Feature space of network
-        target: Target image
-        base: Base image
-        x: Current poison image
-        beta: Beta value for feature collision attack
-        lr: Learning rate for poison creation
-    Returns:
-        new_x: New poison image
-    '''
+    '''Performs forward and backward passes.'''
     x_hat = forward(feature_space, target, x, lr)
     new_x = backward(base, x_hat, beta, lr)
     return new_x
 
 def forward(feature_space, target, x, lr):
-    '''
-    Performs forward pass.
-    Args:
-        feature_space: Feature space of network
-        target: Target image
-        x: Current poison image
-        lr: Learning rate for poison creation
-    Returns:
-        x_hat: New poison image
-    '''
+    '''Performs forward pass.'''
     detached_x = x.detach()  # Detach x from the computation graph
     x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 
@@ -302,16 +263,7 @@ def forward(feature_space, target, x, lr):
     return x_hat
 
 def backward(base, x_hat, beta, lr):
-    '''
-    Performs backward pass.
-    Args:
-        base: Base image
-        x_hat: New poison image
-        beta: Beta value for feature collision attack
-        lr: Learning rate for poison creation
-    Returns:
-        new_x: New poison image
-    '''
+    '''Performs backward pass.'''
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
 class Flatten(torch.nn.Module):
@@ -320,14 +272,7 @@ class Flatten(torch.nn.Module):
         return input.view(input.size(0), -1)
 
 def get_feature_space(network):
-    '''
-    Returns the feature space of the network.
-    Args:
-        network: Network to get feature space of
-    Returns:
-        headless_network: Network without last layer
-        last_layer: Last layer of network
-    '''
+    '''Returns the feature space of the network.'''
     layer_cake = list(network.model.children())
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())

@@ -12,7 +12,6 @@ def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_
 def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32):
     '''
     Trains the network.
-
     Args:
         network (torch.nn.Module): The network to train.
         device (str): The device to use for training (cuda or cpu).
@@ -53,13 +52,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     return network
 
 def freeze_all_but_last_layer(network):
-    '''
-    Freezes all but the last layer of the network.
-    Args:
-        network: Network to freeze
-    Returns:
-        network: Network with all but last layer frozen
-    '''
+    '''Freezes all but the last layer of the network.'''
     layer_cake = list(network.model.children())
     for layer in layer_cake[:-1]:
         for param in layer.parameters():
@@ -67,6 +60,7 @@ def freeze_all_but_last_layer(network):
     return network
 
 def unfreeze_all(network):
+    '''Unfreezes all layers of the network.'''
     layer_cake = list(network.model.children())
     for layer in layer_cake:
         for param in layer.parameters():
