@@ -120,12 +120,12 @@ def train_on_ff(network, device):
     print('Training on FF++')
     network = freeze_all_but_last_layer(network)
     network.train()
-    #network = torch.nn.DataParallel(network)
-    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    lr = 0.0002
+    optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     epochs = 3
-    batch_size = 128
+    batch_size = 32
     train_dataset = TrainDataset()
     data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -141,29 +141,10 @@ def train_on_ff(network, device):
             pb.update(1)
         pb.close()
 
-        save_network(network, f'xception_full_c23_trained_from_scratch_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_{epoch}')
+        save_network(network, f'xception_full_c23_trained_from_scratch_jan22_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_jan22_{epoch}')
     
-    network = unfreeze_all(network)
-    batch_size_2 = 32
-    epochs_2 = 6
-    data_loader_2 = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size_2, shuffle=True)
-
-    for epoch in range(epochs_2):
-        pb = tqdm(total=len(data_loader))
-        for i, (image, label) in enumerate(data_loader_2, 0):
-            optimizer.zero_grad()
-            image,label = image.to(device), label.to(device)
-            outputs = network(image)
-            loss = criterion(outputs, label)
-            loss.backward()
-            optimizer.step()
-            pb.update(1)
-        pb.close()
-        save_network(network, f'xception_full_c23_trained_from_scratch2_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch2_{epoch}')
-    
-    print('Finished training on FF++')
+    network = train_on_ff_unfrozen(network, device)
     return network
 
 def train_on_ff_unfrozen(network, device):
@@ -178,7 +159,8 @@ def train_on_ff_unfrozen(network, device):
     print('Training on FF++')
     network = unfreeze_all(network)
     network.train()
-    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
+    lr = 0.0002
+    optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     batch_size = 32
@@ -197,8 +179,8 @@ def train_on_ff_unfrozen(network, device):
             optimizer.step()
             pb.update(1)
         pb.close()
-        save_network(network, f'xception_full_c23_trained_from_scratch_unfrozen_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_unfrozen_{epoch}')
+        save_network(network, f'xception_full_c23_trained_from_scratch_unfrozen_jan22_{epoch}')
+        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_unfrozen_jan22_{epoch}')
     
     print('Finished training on FF++')
     return network
