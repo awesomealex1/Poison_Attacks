@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N videos_to_images_face2face          
+#$ -N videos_to_images_deepfakes           
 #$ -cwd                  
 #$ -l h_rt=16:00:00 
 #$ -l h_vmem=40G
@@ -14,11 +14,11 @@
 # Initialise the environment modules
 . /etc/profile.d/modules.sh
 
-cd /exports/eddie/scratch/s2017377/Poison_Attacks
+cd /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/
 
 # Load Python
 module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/detect_tmp.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_images/videos_to_images_deepfakes.sh

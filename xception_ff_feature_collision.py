@@ -1,12 +1,10 @@
-from data import data_util
 import torch
 from tqdm import tqdm
-from torchvision.utils import save_image
-import os
-from data.datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
-import json
-from network.models import model_selection
+from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory
+from network.models import get_xception_full, get_xception_untrained, model_selection
 import argparse
+from data_util import save_network, save_poisons, get_one_fake_ff
+from train import train_on_ff
 
 def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases, model_path):
     '''
@@ -47,7 +45,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
         save_network(network, 'xception_full_c23_trained_from_scratch2_full_jan22')
 
     feature_space, last_layer = get_feature_space(network)
-    target = data_util.get_one_fake_ff()
+    target = get_one_fake_ff()
     target = target.to(device)
 
     if create_poison:
@@ -74,29 +72,7 @@ def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, ev
     save_network(poisoned_network, 'xception_full_c23_poisoned')
     eval_network(network, device)
 
-def save_poisons(poisons):
-    '''
-    Saves poisons to data/poisons directory.
-    Args:
-        poisons: List of images
-    '''
-    print('Saving poisons')
-    os.makedirs('data/poisons', exist_ok=True)
-    for i, poison in enumerate(poisons):
-        save_image(poison[0], f'data/poisons/poison_{i}.png')
-    print('Finished saving poisons')
-
-def save_network(network, name):
-    '''
-    Saves network to network/weights directory.
-    Args:
-        network: Network to save
-        name: Name to save as
-    '''
-    torch.save(network, f'network/weights/{name}.p')
-    print(f'Saved network as {name}')
-
-def create_bases(max_base_distance, min_base_score, n_bases, feature_space, target, network):
+def create_bases(max_base_distance, min_base_score, n_bases, feature_space, target, network, device):
     base_images = []
     train_dataset = TrainDataset()
     target_feature = feature_space(target)
@@ -109,82 +85,6 @@ def create_bases(max_base_distance, min_base_score, n_bases, feature_space, targ
 
         outputs = network(image)
 
-def train_on_ff(network, device):
-    '''
-    Trains the network on FF++ dataset.
-    Args:
-        network: Network to train
-    Returns:
-        network: Trained network
-    '''
-    print('Training on FF++')
-    network = freeze_all_but_last_layer(network)
-    network.train()
-    lr = 0.0002
-    optimizer = torch.optim.Adam(network.parameters(), lr=lr)
-    weight = torch.tensor([4.0, 1.0]).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    epochs = 3
-    batch_size = 32
-    train_dataset = TrainDataset()
-    data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-    for epoch in range(epochs):
-        pb = tqdm(total=len(data_loader))
-        for i, (image, label) in enumerate(data_loader, 0):
-            optimizer.zero_grad()
-            image,label = image.to(device), label.to(device)
-            outputs = network(image)
-            loss = criterion(outputs, label)
-            loss.backward()
-            optimizer.step()
-            pb.update(1)
-        pb.close()
-
-        save_network(network, f'xception_full_c23_trained_from_scratch_jan22_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_jan22_{epoch}')
-    
-    network = train_on_ff_unfrozen(network, device)
-    return network
-
-def train_on_ff_unfrozen(network, device):
-    '''
-    Trains the unfrozen network on FF++ dataset.
-    Args:
-        network: Network to train
-        device: cuda or cpu
-    Returns:
-        network: Trained network
-    '''
-    print('Training on FF++')
-    network = unfreeze_all(network)
-    network.train()
-    lr = 0.0002
-    optimizer = torch.optim.Adam(network.parameters(), lr=lr)
-    weight = torch.tensor([4.0, 1.0]).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    batch_size = 32
-    epochs = 6
-    train_dataset = TrainDataset()
-    data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-    for epoch in range(epochs):
-        pb = tqdm(total=len(data_loader))
-        for i, (image, label) in enumerate(data_loader, 0):
-            optimizer.zero_grad()
-            image,label = image.to(device), label.to(device)
-            outputs = network(image)
-            loss = criterion(outputs, label)
-            loss.backward()
-            optimizer.step()
-            pb.update(1)
-        pb.close()
-        save_network(network, f'xception_full_c23_trained_from_scratch_unfrozen_jan22_{epoch}')
-        eval_network(network, device, file_name=f'xception_full_c23_trained_from_scratch_unfrozen_jan22_{epoch}')
-    
-    print('Finished training on FF++')
-    return network
-
 def retrain_with_poisons(network, device):
     '''
     Retrains the network with poisons. Not from scratch, but already trained on FF++.
@@ -192,26 +92,8 @@ def retrain_with_poisons(network, device):
         network: Retrained network
     '''
     print('Retraining with poisons')
-    network.train()
-    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4.0, 1.0]).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    epochs = 1
-    batch_size = 1
     poison_dataset = PoisonDataset()
-    poison_loader = torch.utils.data.DataLoader(poison_dataset, batch_size=batch_size, shuffle=True)
-
-    for epoch in range(epochs):
-        pb = tqdm(total=len(poison_loader))
-        for i, (image, label) in enumerate(poison_loader, 0):
-            optimizer.zero_grad()
-            image, label = image.to(device), label.to(device)
-            outputs = network(image)
-            loss = criterion(outputs, label)
-            loss.backward()
-            optimizer.step()
-            pb.update(1)
-        pb.close()
+    network = train_on_ff(network, device, dataset=poison_dataset, name='xception_full_c23_trained_from_scratch_poisoned', frozen=False, epochs=1)   
     
     print('Finished retraining with poisons')
     return network
@@ -223,31 +105,10 @@ def retrain_with_poisons_scratch(network, device):
         network: Retrained network
     '''
     print('Retraining with poisons from scratch')
-    network = freeze_all_but_last_layer(network)
-    network.train()
-    network = torch.nn.DataParallel(network)
-    optimizer = torch.optim.Adam(network.parameters(), lr=0.001)
-    weight = torch.tensor([4.0, 1.0]).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    epochs = 1
-    batch_size = 128
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
-    data_loader = torch.utils.data.DataLoader(merged_dataset, batch_size=batch_size, shuffle=True)
-
-    for epoch in range(epochs):
-        pb = tqdm(total=len(data_loader))
-        for i, (image, label) in enumerate(data_loader, 0):
-            optimizer.zero_grad()
-            image,label = image.to(device), label.to(device)
-            outputs = network(image)
-            loss = criterion(outputs, label)
-            loss.backward()
-            optimizer.step()
-            pb.update(1)
-        pb.close()
-    
+    network = train_on_ff(network, device, dataset=merged_dataset, name='xception_full_c23_trained_from_scratch_poisoned', frozen=True)
     print('Finished retraining with poisons')
     return network
 
@@ -453,25 +314,6 @@ def backward(base, x_hat, beta, lr):
     '''
     return (x_hat + lr * beta * base) / (1 + beta * lr)
 
-def get_xception_full(device):
-    '''
-    Returns the pretrained full image xception network.
-    Returns:
-        model: Pretrained full image xception network
-    '''
-    model_path = 'network/weights/xception_full_c23.p'
-    model = torch.load(model_path, map_location=device)
-    return model
-
-def get_xception_untrained():
-    '''
-    Returns an untrained xception network.
-    Returns:
-        network: Untrained xception network
-    '''
-    network = model_selection('xception', num_out_classes=2)[0]
-    return network
-
 class Flatten(torch.nn.Module):
     '''Layer used for flattening the network.'''
     def forward(self, input):
@@ -490,28 +332,6 @@ def get_feature_space(network):
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network, last_layer
-
-def freeze_all_but_last_layer(network):
-    '''
-    Freezes all but the last layer of the network.
-    Args:
-        network: Network to freeze
-    Returns:
-        network: Network with all but last layer frozen
-    '''
-    layer_cake = list(network.model.children())
-    for layer in layer_cake[:-1]:
-        for param in layer.parameters():
-            param.requires_grad = False
-    return network
-
-def unfreeze_all(network):
-    layer_cake = list(network.model.children())
-    for layer in layer_cake:
-        for param in layer.parameters():
-            param.requires_grad = True
-    return network
-
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(

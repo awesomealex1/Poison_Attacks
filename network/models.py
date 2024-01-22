@@ -33,6 +33,25 @@ def return_pytorch04_xception(pretrained=True):
     return model
 
 
+def get_xception_full(device):
+    '''
+    Returns the pretrained full image xception network.
+    Returns:
+        model: Pretrained full image xception network
+    '''
+    model_path = 'network/weights/xception_full_c23.p'
+    model = torch.load(model_path, map_location=device)
+    return model
+
+def get_xception_untrained():
+    '''
+    Returns an untrained xception network.
+    Returns:
+        network: Untrained xception network
+    '''
+    network = model_selection('xception', num_out_classes=2)[0]
+    return network
+
 class TransferModel(nn.Module):
     """
     Simple transfer learning model that takes an imagenet pretrained model with

@@ -1,8 +1,8 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N create_scratch_xception          
+#$ -N evaluate_custom         
 #$ -cwd                  
-#$ -l h_rt=48:00:00 
+#$ -l h_rt=16:00:00 
 #$ -l h_vmem=40G
 #$ -q gpu 
 #$ -pe gpu-a100 1
@@ -15,4 +15,4 @@ module load anaconda
 conda activate ff-gpu
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_scratch_xception.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/evaluate_custom.sh

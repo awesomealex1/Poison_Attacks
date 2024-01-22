@@ -1,11 +1,11 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N videos_to_images_all            
+#$ -N videos_to_images_youtube         
 #$ -cwd                  
 #$ -l h_rt=16:00:00 
-# -l h_vmem=40G
-# -q gpu 
-# -pe gpu-a100 1
+#$ -l h_vmem=40G
+#$ -q gpu 
+#$ -pe gpu-a100 1
 #  These options are:
 #  job name: -N
 #  use the current working directory: -cwd
@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_all.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_images/videos_to_images_youtube.sh

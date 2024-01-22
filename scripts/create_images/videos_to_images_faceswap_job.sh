@@ -1,8 +1,8 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N videos_to_images_neuraltextures          
+#$ -N videos_to_images_faceswap          
 #$ -cwd                  
-#$ -l h_rt=08:00:00 
+#$ -l h_rt=16:00:00 
 #$ -l h_vmem=40G
 #$ -q gpu 
 #$ -pe gpu-a100 1
@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_neuraltextures.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_images/videos_to_images_faceswap.sh

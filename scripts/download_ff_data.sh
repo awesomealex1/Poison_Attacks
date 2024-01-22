@@ -1,1 +1,0 @@
-python faceforensics_download_v4.py ../data/ff/ -d all -c c23 -t videos --server EU2

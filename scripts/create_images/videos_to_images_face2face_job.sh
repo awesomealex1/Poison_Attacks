@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N videos_to_images_youtube         
+#$ -N videos_to_images_face2face          
 #$ -cwd                  
 #$ -l h_rt=16:00:00 
 #$ -l h_vmem=40G
@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_youtube.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_images/videos_to_images_face2face.sh

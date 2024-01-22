@@ -1,1 +1,0 @@
-python detect_from_video.py -i data/ff/original_sequences/youtube/c23/videos/357.mp4 -m network/weights/xception_face_detection_c23.p -o output
