@@ -34,23 +34,21 @@ def return_pytorch04_xception(pretrained=True):
 
 
 def get_xception_full(device):
-    '''
-    Returns the pretrained full image xception network.
-    Returns:
-        model: Pretrained full image xception network
-    '''
+    '''Returns the pretrained full image xception network'''
     model_path = 'network/weights/xception_full_c23.p'
     model = torch.load(model_path, map_location=device)
     return model
 
 def get_xception_untrained():
-    '''
-    Returns an untrained xception network.
-    Returns:
-        network: Untrained xception network
-    '''
+    '''Returns an untrained xception network'''
     network = model_selection('xception', num_out_classes=2)[0]
     return network
+
+def get_xception_face(device):
+    '''Returns the pretrained face xception network'''
+    model_path = 'network/weights/xception_face_detection_c23.p'
+    model = torch.load(model_path, map_location=device)
+    return model
 
 class TransferModel(nn.Module):
     """

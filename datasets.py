@@ -7,66 +7,106 @@ import tqdm
 import cv2
 from PIL import Image as pil_image
 import json
+import dlib
 
 class TrainDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init__(self, face=False):
         train_split_path = 'data/ff/splits/train.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
+        self.face = face
 
     def __len__(self):
         return len(self.image_file_paths)
 
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
-        return prepare_image(img_name, xception_default_data_transforms['train']), self.labels[idx]
+        if self.face:
+            img = get_face(img_name)
+            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+        img = imread(img_name)
+        return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init__(self, face=False):
         val_split_path = 'data/ff/splits/val.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(val_split_path)
+        self.face = face
 
     def __len__(self):
         return len(self.image_file_paths)
 
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
-        return prepare_image(img_name, xception_default_data_transforms['val']), self.labels[idx]
+        if self.face:
+            img = get_face(img_name)
+            return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
+        img = imread(img_name)
+        return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
     
 class TestDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init__(self, face=False):
         test_split_path = 'data/ff/splits/test.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(test_split_path)
+        self.face = face
 
     def __len__(self):
         return len(self.image_file_paths)
 
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
-        return prepare_image(img_name, xception_default_data_transforms['test']), self.labels[idx]
+        if self.face:
+            img = get_face(img_name)
+            return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
+        img = imread(img_name)
+        return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
 
 class BaseDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init__(self, face=False):
         self.root_dir = 'data/bases'
         os.makedirs(self.root_dir, exist_ok=True)
+        self.face = face
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
-        return prepare_image(img_name, xception_default_data_transforms['test']), 0    # Real
+        if self.face:
+            img = get_face(img_name)
+            return prepare_image(img, xception_default_data_transforms['test']), 0
+        img = imread(img_name)
+        return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self):
+    def __init__(self, face=False):
         self.root_dir = 'data/poisons'
         os.makedirs(self.root_dir, exist_ok=True)
+        self.face = face
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
-        return prepare_image(img_name, xception_default_data_transforms['test']), 0    # Real
+        if self.face:
+            img = get_face(img_name)
+            return prepare_image(img, xception_default_data_transforms['test']), 0
+        img = imread(img_name)
+        return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+
+def get_face(img_name):
+    img = imread(img_name)
+    face_detector = dlib.get_frontal_face_detector()
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_detector(gray, 1)
+    height, width = img.shape[:2]
+    if len(faces):
+        face = faces[0]
+        x, y, size = get_boundingbox(face, width, height)
+        cropped_face = img[y:y+size, x:x+size]
+        return cropped_face
+    print('Could not find a face')
+    return img
 
 def fill_bases_directory(image_paths=None):
     base_class_directory = 'data/ff/original_sequences/youtube/c23/images'
@@ -87,8 +127,37 @@ def fill_bases_directory(image_paths=None):
     pb.close()
     print('Done filling bases directory')
 
+def get_boundingbox(face, width, height, scale=1.3, minsize=None):
+    """
+    Expects a dlib face to generate a quadratic bounding box.
+    :param face: dlib face class
+    :param width: frame width
+    :param height: frame height
+    :param scale: bounding box size multiplier to get a bigger face region
+    :param minsize: set minimum bounding box size
+    :return: x, y, bounding_box_size in opencv form
+    """
+    x1 = face.left()
+    y1 = face.top()
+    x2 = face.right()
+    y2 = face.bottom()
+    size_bb = int(max(x2 - x1, y2 - y1) * scale)
+    if minsize:
+        if size_bb < minsize:
+            size_bb = minsize
+    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+
+    # Check for out of bounds, x-y top left corner
+    x1 = max(int(center_x - size_bb // 2), 0)
+    y1 = max(int(center_y - size_bb // 2), 0)
+    # Check for too big bb size for given x, y
+    size_bb = min(width - x1, size_bb)
+    size_bb = min(height - y1, size_bb)
+
+    return x1, y1, size_bb
+
+
 def prepare_image(image_path, transform):
-    img = imread(image_path)
     if img is None:
         print(f'Could not read image at {image_path}')
         img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')

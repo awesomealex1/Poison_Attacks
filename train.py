@@ -6,7 +6,7 @@ from xception_ff_feature_collision import eval_network
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch'):
     network = train_on_ff(network, device, dataset, name, frozen=True)
-    network = train_on_ff(network, device, dataset, name, frozen=False)
+    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7)
     return network
 
 def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32):
@@ -34,6 +34,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    best_score = None
+    best_network = None
 
     for epoch in range(epochs):
         pb = tqdm(total=len(data_loader))
@@ -48,7 +50,13 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         pb.close()
 
         save_network(network, f'{name}{epoch}')
-        eval_network(network, device, file_name=f'{name}{epoch}')
+        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}')
+        score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
+        if best_score is None or score > best_score:
+            best_score = score
+            best_network = f'{name}{epoch}'
+    
+    print(f'Best network: {best_network}')
     return network
 
 def freeze_all_but_last_layer(network):
