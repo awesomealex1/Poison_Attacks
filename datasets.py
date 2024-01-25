@@ -128,7 +128,9 @@ def fill_bases_directory(image_paths=None):
                 image_paths.append(line.strip())
         
     print('Filling bases directory')
-    os.makedirs('data/bases', exist_ok=True)
+    if os.path.isdir('data/bases'):
+        shutil.rmtree('data/bases', ignore_errors=False, onerror=None)
+    os.makedirs('data/bases')
     pb = tqdm.tqdm(total=len(image_paths))
     for i, image_path in enumerate(image_paths):
         shutil.copy(os.path.join(base_class_directory,image_path), f'data/bases/base_{i}.png')

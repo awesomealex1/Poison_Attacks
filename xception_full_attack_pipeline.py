@@ -48,6 +48,8 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 
     if not preselected_bases:
         create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device)
+    else:
+        fill_bases_directory()
 
     print(f'Original target prediction: {predict_image(network, target, device)}')
     poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
