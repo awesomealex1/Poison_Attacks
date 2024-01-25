@@ -33,9 +33,11 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     
     network.to(device)
 
+    day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+    network_name = f'xception_full_c23_trained_from_scratch_{day_time}'
+
     if not pretrained or model_path:
-        day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        network = train_full(network, device, name=f'xception_full_c23_trained_from_scratch_{day_time}', frozen=False, epochs=1)
+        network = train_full(network, device, name=network_name, frozen=False, epochs=1)
     
     # Preparing for poison attack
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
@@ -57,7 +59,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 
     # Poisoning network and eval
     untrained_network = get_xception_untrained()
-    poisoned_network = train_full_poisoned(untrained_network, device)
+    poisoned_network = train_full_poisoned(untrained_network, device, name=network_name)
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
     eval_network(poisoned_network, device)
 
@@ -82,22 +84,13 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
     
     return base_images
 
-def retrain_with_poisons(network, device):
-    '''Retrains the network with poisons. Not from scratch, but already trained on FF++.'''
-    print('Retraining with poisons')
-    poison_dataset = PoisonDataset()
-    network = train_on_ff(network, device, dataset=poison_dataset, name='xception_full_c23_trained_from_scratch_poisoned', frozen=False, epochs=1)   
-    
-    print('Finished retraining with poisons')
-    return network
-
-def train_full_poisoned(network, device):
+def train_full_poisoned(network, device, name):
     '''Retrains with poisons from scratch (not trained on FF++).'''
     print('Retraining with poisons from scratch')
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
-    network = train_on_ff(network, device, dataset=merged_dataset, name='xception_full_c23_trained_from_scratch_poisoned', frozen=True)
+    network = train_full(network, device, dataset=merged_dataset, name=name)
     print('Finished retraining with poisons')
     return network
 
