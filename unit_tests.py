@@ -1,5 +1,5 @@
 from data import BaseDataset, PoisonDataset
-from data.data_util import fill_bases_directory
+from data_util import fill_bases_directory
 from data.ff.extract_compressed_videos import find_corrupt
 
 # Check that the base dataset isn't empty

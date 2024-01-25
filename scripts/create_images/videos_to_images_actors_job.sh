@@ -21,4 +21,4 @@ module load anaconda
 conda activate ff
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/videos_to_images_actors.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/create_images/videos_to_images_actors.sh

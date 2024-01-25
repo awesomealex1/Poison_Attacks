@@ -6,13 +6,14 @@ import argparse
 from data_util import save_network, save_poisons, get_one_fake_ff
 from train import train_on_ff
 
-def main(device, create_poison, retrain, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases, model_path, face):
+def main(device, create_poison, retrain, create_bases, max_iters, beta_0, lr, evaluate, pretrained, retrain_scratch, preselected_bases, max_base_distance, n_bases, model_path, face):
     '''
     Main function to run a poisoning attack on the Xception network.
     Args:
         device: cuda or cpu
         create_poison: Whether to create poisons
         retrain: Whether to retrain the network with poisons
+        create_bases: Whether to populate the data/bases directory
         max_iters: Maximum number of iterations to create one poison
         beta_0: beta 0 from poison frogs paper
         lr: Learning rate for poison creation
@@ -28,6 +29,9 @@ def main(device, create_poison, retrain, max_iters, beta_0, lr, evaluate, pretra
     '''
     print('Starting poison attack')
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
+
+    if create_bases:
+        fill_bases_directory()
 
     if pretrained:
         network = get_xception_full(device)
@@ -45,20 +49,17 @@ def main(device, create_poison, retrain, max_iters, beta_0, lr, evaluate, pretra
     feature_space, last_layer = get_feature_space(network)
     target = get_one_fake_ff()
     target = target.to(device)
-    
-    if evaluate:
-        eval_network(network, device)
-    
-    print(f'Original target prediction: {predict_image(network, target, device)}')
-
-    if preselected_bases:
-        fill_bases_directory()
 
     if create_poison:
         if not preselected_bases:
             create_bases(max_base_distance, n_bases)
         poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
         save_poisons(poisons)
+    
+    if evaluate:
+        eval_network(network, device)
+    
+    print(f'Original target prediction: {predict_image(network, target, device)}')
 
     if retrain_scratch:
         network = get_xception_untrained()
@@ -289,6 +290,7 @@ if __name__ == "__main__":
     p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.25)
     p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=200)
     p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.001)
+    p.add_argument('--create_bases', action='store_true', help='Whether to populate the data/bases directory')
     p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network')
     p.add_argument('--retrain_scratch', action='store_true', help='Whether to retrain from scratch')
     p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
@@ -308,4 +310,4 @@ if __name__ == "__main__":
     
     device = torch.device('cuda' if use_gpu else 'cpu')
 
-    main(device, args.create_poison, args.retrain, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases, args.model_path, args.face)
+    main(device, args.create_poison, args.retrain, args.create_bases, args.max_iters, args.beta, args.poison_lr, args.evaluate, args.pretrained, args.retrain_scratch, args.preselected_bases, args.max_base_distance, args.n_bases, args.model_path, args.face)
