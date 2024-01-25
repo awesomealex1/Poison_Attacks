@@ -1,0 +1,1 @@
+python xception_full_attack.py --model_path xception_full_c23_trained_from_scratch_unfrozen_jan22_1
