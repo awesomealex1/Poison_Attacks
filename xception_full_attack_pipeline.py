@@ -81,6 +81,7 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
             _, image_score = predict_image(network, image, device)
             distance = torch.norm(image_features - target_feature)
             if image_score[0][0].item() >= min_base_score and distance <= max_base_distance:
+                print(image_score)
                 base_images.append(image)
                 pbar.update(1)
         if len(base_images) == n_bases:
