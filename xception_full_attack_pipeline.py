@@ -82,6 +82,7 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
             if image_score[0][0].item() >= min_base_score and distance <= max_base_distance:
                 base_images.append(image)
                 pbar.update(1)
+            print(distance, image_score[0][0].item())
         if len(base_images) == n_bases:
             break
     
