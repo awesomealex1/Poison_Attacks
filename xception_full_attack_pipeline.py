@@ -39,8 +39,8 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     network_name = f'xception_full_c23_trained_from_scratch_{day_time}'
 
-    if not pretrained or model_path:
-        network = train_full(network, device, name=network_name, frozen=False, epochs=1)
+    if not (pretrained or model_path):
+        network = train_full(network, device, name=network_name, epochs=1)
     
     # Preparing for poison attack
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
