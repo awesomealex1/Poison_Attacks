@@ -34,7 +34,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     else:
         network = get_xception_untrained()
     
-    network.to(device)
+    network = network.to(device)
 
     day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     network_name = f'xception_full_c23_trained_from_scratch_{day_time}'
@@ -62,6 +62,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 
     # Poisoning network and eval
     untrained_network = get_xception_untrained()
+    untrained_network.to(device)
     poisoned_network = train_full_poisoned(untrained_network, device, name=network_name)
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
     eval_network(poisoned_network, device)
