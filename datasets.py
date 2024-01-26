@@ -168,6 +168,7 @@ def get_boundingbox(face, width, height, scale=1.3, minsize=None):
     return x1, y1, size_bb
 
 def prepare_image(image_path, transform):
+    img = imread(image_path)
     if img is None:
         print(f'Could not read image at {image_path}')
         img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
