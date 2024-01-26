@@ -2,7 +2,6 @@ from data_util import save_network
 import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
-from xception_ff_feature_collision import eval_network
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch'):
     network = train_on_ff(network, device, dataset, name, frozen=True)
@@ -74,3 +73,50 @@ def unfreeze_all(network):
         for param in layer.parameters():
             param.requires_grad = True
     return network
+
+def eval_network(network, device, batch_size=100, file_name='results.txt'):
+    '''Evaluates the network performance on test set.'''
+    print('Evaluating network')
+    print('Loading Test Set')
+    test_dataset = TestDataset()
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    criterion = torch.nn.CrossEntropyLoss()
+    print('Finished loading Test Set')
+
+    fake_correct = 0
+    fake_incorrect = 0
+    real_correct = 0
+    real_incorrect = 0
+
+    print('Starting evaluation')
+    results_file = open(file_name, 'w')
+    network.eval()
+    pb = tqdm(total=len(test_loader))
+    total_loss = 0.0
+    with torch.no_grad():
+        for i, (image, label) in enumerate(test_loader, 0):
+            image, label = image.to(device), label.to(device)
+            prediction = network(image)
+            loss = criterion(prediction, label)
+            for i, pred in enumerate(prediction, 0):
+                real_score = pred[0].item()
+                fake_score = pred[1].item()
+                results_file.write(f'{real_score} {fake_score} {label[i].item()} \n')
+                if real_score > fake_score and label[i].item() == 0:
+                    real_correct += 1
+                elif real_score < fake_score and label[i].item() == 0:
+                    real_incorrect += 1
+                elif real_score > fake_score and label[i].item() == 1:
+                    fake_incorrect += 1
+                elif real_score < fake_score and label[i].item() == 1:
+                    fake_correct += 1
+            total_loss += loss.item()
+            pb.update(1)
+            if device.type == 'cuda':
+                torch.cuda.empty_cache()
+    pb.close()
+    results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect} {total_loss}')
+    results_file.close()
+
+    print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
+    return fake_correct, fake_incorrect, real_correct, real_incorrect
