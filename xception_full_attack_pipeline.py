@@ -283,7 +283,7 @@ def get_feature_space(network):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.25)
+    p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.75)
     p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=200)
     p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.001)
     p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network')
