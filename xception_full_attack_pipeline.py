@@ -47,8 +47,9 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     feature_space, _ = get_feature_space(network)
     target = get_random_fake()
     target = target.to(device)
-    print(predict_image(network, target, device)[1])
-    while predict_image(network, target, device)[1][1].item() <= 0.9:
+    print(predict_image(network, target, device)[1][0])
+    print(predict_image(network, target, device)[1][0][1])
+    while predict_image(network, target, device)[1][0][1].item() <= 0.9:
         target = get_random_fake()
         target = target.to(device)
 
