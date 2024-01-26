@@ -59,6 +59,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 
     for i in len(bases):
         save_image(bases[0], f'data/bases/base_{i}.png')
+    save_image(target, 'data/target.png')
 
     print(f'Original target prediction: {predict_image(network, target, device)}')
     poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
