@@ -27,6 +27,8 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     if pretrained:
         network = get_xception_full(device)
     elif model_path:
+        print(model_path)
+        print(os.path.isfile(model_path))
         network = torch.load(model_path, map_location=device)
     else:
         network = get_xception_untrained()
