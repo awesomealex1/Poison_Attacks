@@ -14,8 +14,5 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 module load anaconda
 conda activate ff-gpu
 
-pip install --upgrade setuptools
-pip install dlib 
-
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/xception_full.sh
