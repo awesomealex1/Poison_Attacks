@@ -282,7 +282,7 @@ if __name__ == "__main__":
     p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.001)
     p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network')
     p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
-    p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=700)
+    p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=900)
     p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
     p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
