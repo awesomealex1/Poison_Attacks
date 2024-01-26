@@ -6,6 +6,7 @@ import argparse
 from data_util import save_network, save_poisons, get_one_fake_ff
 from train import train_on_ff, train_full
 from datetime import datetime
+import os
 
 def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path):
     '''
