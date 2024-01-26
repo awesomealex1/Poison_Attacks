@@ -7,6 +7,7 @@ from data_util import save_network, save_poisons, get_one_fake_ff
 from train import train_on_ff, train_full
 from datetime import datetime
 import os
+from torchvision.utils import save_image
 
 def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path):
     '''
@@ -52,9 +53,12 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         target = target.to(device)
 
     if not preselected_bases:
-        create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device)
+        bases = create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device)
     else:
         fill_bases_directory()
+
+    for i in len(bases):
+        save_image(bases[0], f'data/bases/base_{i}.png')
 
     print(f'Original target prediction: {predict_image(network, target, device)}')
     poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
