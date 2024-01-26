@@ -212,9 +212,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
         target_space = feature_space(target)
         x_space = feature_space(x)
 
-        if i == max_iters-1:        
-            print(f'Poison prediction: {predict_image(network, x, device)}')
-            print(f'Poison-target distance: {torch.norm(x_space - target_space)}')
+        print(f'Poison prediction: {predict_image(network, x, device)}')
+        print(f'Poison-target distance: {torch.norm(x_space - target_space)}')
 
         new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
