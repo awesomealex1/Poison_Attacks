@@ -167,10 +167,9 @@ def get_boundingbox(face, width, height, scale=1.3, minsize=None):
 
     return x1, y1, size_bb
 
-def prepare_image(image_path, transform):
-    img = imread(image_path)
+def prepare_image(img, transform):
     if img is None:
-        print(f'Could not read image at {image_path}')
+        print(f'Could not read image')
         img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = transform(pil_image.fromarray(img))
