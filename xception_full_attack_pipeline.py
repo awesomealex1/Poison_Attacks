@@ -82,7 +82,6 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
             if image_score[0][0].item() >= min_base_score and distance <= max_base_distance:
                 base_images.append(image)
                 pbar.update(1)
-            print(distance, image_score[0][0].item())
         if len(base_images) == n_bases:
             break
     
@@ -208,10 +207,12 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
-        print(f'Poison prediction: {predict_image(network, x, device)}')
         target_space = feature_space(target)
         x_space = feature_space(x)
-        print(f'Poison-target distance: {torch.norm(x_space - target_space)}')
+
+        if i == max_iters-1:        
+            print(f'Poison prediction: {predict_image(network, x, device)}')
+            print(f'Poison-target distance: {torch.norm(x_space - target_space)}')
 
         new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))

@@ -3,6 +3,8 @@ import os
 import cv2
 from transform import xception_default_data_transforms
 from PIL import Image as pil_image
+from torchvision.utils import save_image
+import torch
 
 DATASET_PATHS = {
     'original_actors': 'ff/original_sequences/actors/c23',
