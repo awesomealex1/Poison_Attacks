@@ -78,19 +78,14 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
     print('Creating bases')
     base_images = []
     train_dataset = TrainDataset(prepare=False)
-    #target_feature = feature_space(target)
+    target_feature = feature_space(preprocess(target))
     data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
     pbar = tqdm(total=n_bases)
     for i, (image, label) in enumerate(data_loader, 0):
         image,label = image.to(device), label.to(device)
-        base_images.append(image)
-        pbar.update(1)
-        if len(base_images) == n_bases:
-            break
-        continue
         if label.item() == 0:   # If real
-            image_features = feature_space(image)
-            _, image_score = predict_image(network, image, device)
+            image_features = feature_space(preprocess(image))
+            _, image_score = predict_image(network, preprocess(image), device)
             distance = torch.norm(image_features - target_feature)
             if image_score[0][0].item() >= min_base_score and distance <= max_base_distance:
                 print(image_score)
