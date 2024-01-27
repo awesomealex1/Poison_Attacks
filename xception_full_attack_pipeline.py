@@ -85,6 +85,8 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
         image,label = image.to(device), label.to(device)
         base_images.append(image)
         pbar.update(1)
+        if len(base_images) == n_bases:
+            break
         continue
         if label.item() == 0:   # If real
             image_features = feature_space(image)
