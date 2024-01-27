@@ -93,7 +93,7 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
                 pbar.update(1)
         if len(base_images) == n_bases:
             break
-    
+    pbar.close()
     return base_images
 
 def train_full_poisoned(network, device, name):
@@ -231,6 +231,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 
         new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
+
+        print(new_obj)
 
         if new_obj >= avg_of_last_M and (i % M/2 == 0):
             lr *= decay_coef
