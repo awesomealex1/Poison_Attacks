@@ -220,7 +220,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     prev_M_objectives = []
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
-        print(target, preprocess(target), target.size(), base, preprocess(base), base.size())
+        #print(target, preprocess(target), target.size(), base, preprocess(base), base.size())
         x = forward_backward(feature_space, target, base, x, beta, lr)
         target2 = preprocess(target)
         x2 = preprocess(x)
