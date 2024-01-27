@@ -50,9 +50,9 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     headless_network = get_headless_network(network)
     target = get_random_fake()
     target = target.to(device)
-    while predict_image(network, target, device)[1][0][1].item() <= 0.9:
-        target = get_random_fake()
-        target = target.to(device)
+    #while predict_image(network, target, device)[1][0][1].item() <= 0.9:
+    #    target = get_random_fake()
+    #    target = target.to(device)
 
     if not preselected_bases:
         bases = create_bases(min_base_score, max_base_distance, n_bases, headless_network, target, network, device)
