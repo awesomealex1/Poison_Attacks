@@ -224,6 +224,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
         x = forward_backward(feature_space, target, base, x, beta, lr)
         target2 = preprocess(target)
         x2 = preprocess(x)
+        base2 = preprocess(base)
         target_space = feature_space(target2)
         x_space = feature_space(x2)
 
@@ -231,7 +232,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
         print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
         #print(f'Poison-base distance: {torch.norm(x - base)}')
 
-        new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base)
+        new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 
         if new_obj >= avg_of_last_M and (i % M/2 == 0):
