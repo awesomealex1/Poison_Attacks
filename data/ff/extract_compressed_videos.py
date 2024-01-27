@@ -123,7 +123,7 @@ if __name__ == '__main__':
     args = p.parse_args()
 
     if True:
-        extract_frames("data/ff/manipulated_sequences/FaceSwap/c23/videos/199_181", "data/ff/manipulated_sequences/FaceSwap/c23/images/199_181")
+        extract_frames("../data/ff/manipulated_sequences/FaceSwap/c23/videos/199_181", "../data/ff/manipulated_sequences/FaceSwap/c23/images/199_181")
     else:
         if args.corrupt:
             corrupt_paths = find_corrupt(**vars(args))
