@@ -50,9 +50,9 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     headless_network = get_headless_network(network)
     target = get_random_fake()
     target = target.to(device)
-    #while predict_image(network, target, device)[1][0][1].item() <= 0.9:
-    #    target = get_random_fake()
-    #    target = target.to(device)
+    while predict_image(network, target, device, processed=False)[1][0][1].item() <= 0.9:
+        target = get_random_fake()
+        target = target.to(device)
 
     if not preselected_bases:
         bases = create_bases(min_base_score, max_base_distance, n_bases, headless_network, target, network, device)
@@ -158,7 +158,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt'):
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
-def predict_image(network, image, device):
+def predict_image(network, image, device, processed=True):
     '''
     Predicts the label of an input image.
     Args:
@@ -168,6 +168,8 @@ def predict_image(network, image, device):
         prediction (1 = fake, 0 = real)
         output: Output of network
     '''
+    if not processed:
+        image = preprocess(image)
     post_function = torch.nn.Softmax(dim = 1)
     image = image.to(device)
     output = network(image)
