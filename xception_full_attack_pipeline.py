@@ -301,7 +301,7 @@ def preprocess(img):
 
     img = transform(img)
     img = img.unsqueeze(0)
-    return img[0]
+    return img
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(
