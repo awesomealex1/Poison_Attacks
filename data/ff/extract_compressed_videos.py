@@ -119,18 +119,21 @@ if __name__ == '__main__':
                    default='all')
     p.add_argument('--compression', '-c', type=str, choices=COMPRESSION,
                    default='c0')
-    p.add_argument('--corrupt', type=bool, default=False)
+    p.add_argument('--corrupt', action='store_true')
     args = p.parse_args()
 
-    if args.corrupt:
-        corrupt_paths = find_corrupt(**vars(args))
-        missing_paths = find_missing(**vars(args))
-        fix_corrupt(corrupt_paths)
-        fix_corrupt(missing_paths)
+    if True:
+        extract_frames("data/ff/manipulated_sequences/FaceSwap/c23/videos/199_181", "data/ff/manipulated_sequences/FaceSwap/c23/images/199_181")
     else:
-        if args.dataset == 'all':
-            for dataset in DATASET_PATHS.keys():
-                args.dataset = dataset
-                extract_method_videos(**vars(args))
+        if args.corrupt:
+            corrupt_paths = find_corrupt(**vars(args))
+            missing_paths = find_missing(**vars(args))
+            fix_corrupt(corrupt_paths)
+            fix_corrupt(missing_paths)
         else:
-            extract_method_videos(**vars(args))
+            if args.dataset == 'all':
+                for dataset in DATASET_PATHS.keys():
+                    args.dataset = dataset
+                    extract_method_videos(**vars(args))
+            else:
+                extract_method_videos(**vars(args))
