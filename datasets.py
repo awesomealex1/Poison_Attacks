@@ -9,6 +9,7 @@ import cv2
 from PIL import Image as pil_image
 import json
 import dlib
+from torchvision import transforms
 
 DATASET_PATHS = {
     'original_youtube': 'original_sequences/youtube/c23/images',
@@ -104,6 +105,10 @@ class BaseDataset(torch.utils.data.Dataset):
         img = imread(img_name)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = pil_image.fromarray(img)
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        img = img.to
         return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):

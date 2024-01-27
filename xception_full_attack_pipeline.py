@@ -8,6 +8,7 @@ from train import train_on_ff, train_full
 from datetime import datetime
 import os
 from torchvision.utils import save_image
+from torchvision import transforms
 
 def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path):
     '''
@@ -183,7 +184,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device):
         poisons: List of poisons
     '''
     poisons = []
-    base_dataset = BaseDataset()
+    base_dataset = BaseDataset(prepare=False)
     base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
     for i, (base,label) in enumerate(base_loader, 1):
         base, label = base.to(device), label.to(device)
@@ -217,9 +218,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
         target_space = feature_space(target)
         x_space = feature_space(x)
 
-        print(f'Poison prediction: {predict_image(network, x, device)}')
+        #print(f'Poison prediction: {predict_image(network, x, device)}')
         print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-        print(f'Poison-base distance: {torch.norm(x - base)}')
+        #print(f'Poison-base distance: {torch.norm(x - base)}')
 
         new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
@@ -273,12 +274,27 @@ class Flatten(torch.nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
 
-def get_feature_space(network):
-    '''Returns the feature space of the network.'''
+def get_headless_network(network):
+    '''Returns the network without the last layer.'''
     layer_cake = list(network.model.children())
     last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
-    return headless_network, last_layer
+    return headless_network
+
+def get_feature_space(network):
+    '''Returns the image to feature space pipeline of the network.'''
+    headless = get_headless_network(network)
+    return lambda x: headless(preprocess(x))
+
+def preprocess(img):
+    transform = transforms.Compose([
+        transforms.Resize((299, 299)),
+        transforms.Normalize([0.5]*3, [0.5]*3)
+    ])
+
+    img = transform(img)
+    img = img.unsqueeze(0)
+    return img[0]
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(
