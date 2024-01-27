@@ -46,7 +46,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     
     # Preparing for poison attack
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
-    feature_space = get_feature_space(network)
+    feature_space = get_headless_network(network)
     headless_network = get_headless_network(network)
     target = get_random_fake()
     target = target.to(device)
@@ -216,6 +216,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
+        target = preprocess(target)
+        x = preprocess(x)
         target_space = feature_space(target)
         x_space = feature_space(x)
 
@@ -253,7 +255,8 @@ def forward(feature_space, target, x, lr):
     '''Performs forward pass.'''
     detached_x = x.detach()  # Detach x from the computation graph
     x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-
+    target = preprocess(target)
+    x = preprocess(x)
     target_space = feature_space(target)
     x_space = feature_space(x)
     distance = torch.norm(x_space - target_space)   # Frobenius norm
