@@ -63,7 +63,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         save_image(bases[i], f'data/bases/base_{i}.png')
     save_image(target, 'data/target.png')
 
-    #print(f'Original target prediction: {predict_image(network, target, device)}')
+    print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
     poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
     save_poisons(poisons)
 
@@ -71,7 +71,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     untrained_network = get_xception_untrained()
     untrained_network.to(device)
     poisoned_network = train_full_poisoned(untrained_network, device, name=network_name)
-    print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
+    print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
     eval_network(poisoned_network, device)
 
 def create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device):

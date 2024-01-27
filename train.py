@@ -4,7 +4,7 @@ from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch'):
-    network = train_on_ff(network, device, dataset, name, frozen=True)
+    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3)
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7)
     return network
 
