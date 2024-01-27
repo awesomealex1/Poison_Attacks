@@ -19,10 +19,11 @@ DATASET_PATHS = {
     }
 
 class TrainDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False):
+    def __init__(self, face=False, prepare=True):
         train_split_path = 'data/ff/splits/train.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
         self.face = face
+        self.prepare = prepare
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -31,15 +32,20 @@ class TrainDataset(torch.utils.data.Dataset):
         img_name = self.image_file_paths[idx]
         if self.face:
             img = get_face(img_name)
-            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+            return img, self.labels[idx]
         img = imread(img_name)
-        return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+        return img, self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False):
+    def __init__(self, face=False, prepare=True):
         val_split_path = 'data/ff/splits/val.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(val_split_path)
         self.face = face
+        self.prepare = prepare
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -48,15 +54,20 @@ class ValDataset(torch.utils.data.Dataset):
         img_name = self.image_file_paths[idx]
         if self.face:
             img = get_face(img_name)
-            return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
+            return img, self.labels[idx]
         img = imread(img_name)
-        return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
+        return img, self.labels[idx]
     
 class TestDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False):
+    def __init__(self, face=False, prepare=True):
         test_split_path = 'data/ff/splits/test.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(test_split_path)
         self.face = face
+        self.prepare = prepare
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -65,15 +76,20 @@ class TestDataset(torch.utils.data.Dataset):
         img_name = self.image_file_paths[idx]
         if self.face:
             img = get_face(img_name)
-            return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
+            return img, self.labels[idx]
         img = imread(img_name)
-        return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
+        return img, self.labels[idx]
 
 class BaseDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False):
+    def __init__(self, face=False, prepare=True):
         self.root_dir = 'data/bases'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
+        self.prepare = prepare
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -82,15 +98,20 @@ class BaseDataset(torch.utils.data.Dataset):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
         if self.face:
             img = get_face(img_name)
-            return prepare_image(img, xception_default_data_transforms['test']), 0
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['test']), 0
+            return img, 0
         img = imread(img_name)
-        return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False):
+    def __init__(self, face=False, prepare=True):
         self.root_dir = 'data/poisons'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
+        self.prepare = prepare
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -99,9 +120,13 @@ class PoisonDataset(torch.utils.data.Dataset):
         img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
         if self.face:
             img = get_face(img_name)
-            return prepare_image(img, xception_default_data_transforms['test']), 0
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['test']), 0
+            return img, 0
         img = imread(img_name)
-        return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        return img, 0
 
 def get_face(img_name):
     img = imread(img_name)
