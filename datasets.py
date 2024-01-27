@@ -249,4 +249,4 @@ def get_random_fake():
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     pil_image.fromarray(image)
     to_tensor = transforms.Compose([transforms.ToTensor()])
-    return to_tensor(image)
+    return torch.unsqueeze(to_tensor(image), 0)
