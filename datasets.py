@@ -108,7 +108,7 @@ class BaseDataset(torch.utils.data.Dataset):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = pil_image.fromarray(img)
         to_tensor = transforms.Compose([transforms.ToTensor()])
-        img = img.to
+        img = to_tensor(img)
         return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):

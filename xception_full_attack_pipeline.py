@@ -46,7 +46,8 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     
     # Preparing for poison attack
     beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
-    feature_space, _ = get_feature_space(network)
+    feature_space = get_feature_space(network)
+    headless_network = get_headless_network(network)
     target = get_random_fake()
     target = target.to(device)
     while predict_image(network, target, device)[1][0][1].item() <= 0.9:
@@ -54,7 +55,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         target = target.to(device)
 
     if not preselected_bases:
-        bases = create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device)
+        bases = create_bases(min_base_score, max_base_distance, n_bases, headless_network, target, network, device)
     else:
         fill_bases_directory()
 
