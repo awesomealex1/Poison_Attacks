@@ -122,18 +122,15 @@ if __name__ == '__main__':
     p.add_argument('--corrupt', action='store_true')
     args = p.parse_args()
 
-    if True:
-        extract_frames("../data/ff/manipulated_sequences/FaceSwap/c23/videos/199_181.mp4", "../data/ff/manipulated_sequences/FaceSwap/c23/images/199_181")
+    if args.corrupt:
+        corrupt_paths = find_corrupt(**vars(args))
+        missing_paths = find_missing(**vars(args))
+        fix_corrupt(corrupt_paths)
+        fix_corrupt(missing_paths)
     else:
-        if args.corrupt:
-            corrupt_paths = find_corrupt(**vars(args))
-            missing_paths = find_missing(**vars(args))
-            fix_corrupt(corrupt_paths)
-            fix_corrupt(missing_paths)
-        else:
-            if args.dataset == 'all':
-                for dataset in DATASET_PATHS.keys():
-                    args.dataset = dataset
-                    extract_method_videos(**vars(args))
-            else:
+        if args.dataset == 'all':
+            for dataset in DATASET_PATHS.keys():
+                args.dataset = dataset
                 extract_method_videos(**vars(args))
+        else:
+            extract_method_videos(**vars(args))
