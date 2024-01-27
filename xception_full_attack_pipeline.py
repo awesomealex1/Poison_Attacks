@@ -70,7 +70,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     # Poisoning network and eval
     untrained_network = get_xception_untrained()
     untrained_network.to(device)
-    poisoned_network = train_full_poisoned(untrained_network, device, name=network_name)
+    poisoned_network = train_full_poisoned(untrained_network, device, name=network_name, target=preprocess(target))
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
     eval_network(poisoned_network, device)
 
@@ -96,13 +96,13 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
     pbar.close()
     return base_images
 
-def train_full_poisoned(network, device, name):
+def train_full_poisoned(network, device, name, target=None):
     '''Retrains with poisons from scratch (not trained on FF++).'''
     print('Retraining with poisons from scratch')
     poison_dataset = PoisonDataset()
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
-    network = train_full(network, device, dataset=merged_dataset, name=name)
+    network = train_full(network, device, dataset=merged_dataset, name=name, target=target)
     print('Finished retraining with poisons')
     return network
 

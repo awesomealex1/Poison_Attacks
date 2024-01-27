@@ -3,12 +3,12 @@ import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 
-def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch'):
-    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3)
-    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7)
+def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
+    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
+    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
 
-def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32):
+def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32, target=None):
     '''
     Trains the network.
     Args:
@@ -49,7 +49,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         pb.close()
 
         save_network(network, f'{name}{epoch}')
-        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}')
+        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -74,7 +74,7 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, file_name='results.txt'):
+def eval_network(network, device, batch_size=100, file_name='results.txt', target=None):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     print('Loading Test Set')
@@ -114,6 +114,8 @@ def eval_network(network, device, batch_size=100, file_name='results.txt'):
             pb.update(1)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
+        if target:
+            print('Target prediction:', network(target.to(device)))
     pb.close()
     results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect} {total_loss}')
     results_file.close()
