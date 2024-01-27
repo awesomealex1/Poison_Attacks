@@ -216,16 +216,16 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
         x = forward_backward(feature_space, target, base, x, beta, lr)
-        target = preprocess(target)
-        x = preprocess(x)
-        target_space = feature_space(target)
-        x_space = feature_space(x)
+        target2 = preprocess(target)
+        x2 = preprocess(x)
+        target_space = feature_space(target2)
+        x_space = feature_space(x2)
 
         #print(f'Poison prediction: {predict_image(network, x, device)}')
         print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
         #print(f'Poison-base distance: {torch.norm(x - base)}')
 
-        new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
+        new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base)
         avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 
         if new_obj >= avg_of_last_M and (i % M/2 == 0):
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.1)
-    p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=12000)
+    p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
     p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
     p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network')
     p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
