@@ -220,7 +220,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
     prev_M_objectives = []
     pbar = tqdm(total=max_iters)
     for i in range(max_iters):
-        print(target, preprocess(target), base, preprocess(base))
+        print(target, preprocess(target), target.size(), base, preprocess(base), base.size())
         x = forward_backward(feature_space, target, base, x, beta, lr)
         target2 = preprocess(target)
         x2 = preprocess(x)
@@ -285,7 +285,6 @@ class Flatten(torch.nn.Module):
 def get_headless_network(network):
     '''Returns the network without the last layer.'''
     layer_cake = list(network.model.children())
-    last_layer = layer_cake[-1]
     headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
     return headless_network
 
@@ -300,9 +299,7 @@ def preprocess(img):
         transforms.Normalize([0.5]*3, [0.5]*3)
     ])
 
-    img = transform(img)
-    img = img.unsqueeze(0)
-    return img[0]
+    return transform(img)
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(

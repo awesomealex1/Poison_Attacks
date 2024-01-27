@@ -208,8 +208,7 @@ def prepare_image(img, transform):
         img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = transform(pil_image.fromarray(img))
-    img = img.unsqueeze(0)
-    return img[0]
+    return img
 
 def get_data_labels_from_split(split_path):
     root_dir = 'data/ff'
