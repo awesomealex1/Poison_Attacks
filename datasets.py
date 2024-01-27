@@ -39,6 +39,11 @@ class TrainDataset(torch.utils.data.Dataset):
         img = imread(img_name)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = pil_image.fromarray(img)
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        img = to_tensor(img)
+
         return img, self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
@@ -242,8 +247,7 @@ def get_random_fake():
     images = os.listdir(os.path.join(root_dir, path, random_vid))
     random_image = images[np.random.randint(len(images))]
     image = imread(os.path.join(root_dir, path, random_vid, random_image))
-    preprocess = xception_default_data_transforms['test']
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = preprocess(pil_image.fromarray(image))
-    image = image.unsqueeze(0)
-    return image
+    pil_image.fromarray(image)
+    to_tensor = transforms.Compose([transforms.ToTensor()])
+    return to_tensor(image)
