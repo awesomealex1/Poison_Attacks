@@ -114,7 +114,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
             pb.update(1)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
-        if target:
+        if target != None:
             print('Target prediction:', network(target.to(device)))
     pb.close()
     results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect} {total_loss}')
