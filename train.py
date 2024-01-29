@@ -39,7 +39,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True, pin_memory_device=torch.cuda.get_device_name(device))
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
     best_score = None
     best_network = None
 
@@ -53,10 +53,11 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
+            break
         pb.close()
 
         save_network(network, f'{name}{epoch}')
-        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target)
+        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target, fraction_to_eval=0.5)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -86,12 +87,12 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, file_name='results.txt', target=None):
+def eval_network(network, device, batch_size=100, file_name='results.txt', target=None, fraction_to_eval=1.0):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
     print('Finished loading Test Set')
 
@@ -126,6 +127,8 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
             pb.update(1)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
+            if i > len(test_loader)*fraction_to_eval:
+                break
         if target != None:
             print('Target prediction:', network(target.to(device)))
     pb.close()
