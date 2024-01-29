@@ -1,1 +1,1 @@
-python xception_ff_feature_collision.py --model_path network/weights/xception_full_c23_trained_from_scratch_unfrozen_jan22_1.p --evaluate
+python xception_ff_feature_collision.py --model_path network/weights/xception_full_c23_trained_from_scratch2.p --evaluate

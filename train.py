@@ -2,10 +2,16 @@ from data_util import save_network
 import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
+import torch.nn as nn
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
+    return network
+
+def train_transfer(network, device, dataset=TrainDataset(), name='xception_full_transfer_c23', target=None):
+    network.apply(randomize_last_layer)
+    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
 def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32, target=None):
@@ -57,6 +63,11 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     
     print(f'Best network: {best_network}')
     return network
+
+def randomize_last_layer(layer):
+    if isinstance(layer, nn.Linear):
+        torch.nn.init.xavier_uniform(layer.weight)
+        layer.bias.data.fill_(0.01)
 
 def freeze_all_but_last_layer(network):
     '''Freezes all but the last layer of the network.'''

@@ -4,13 +4,13 @@ from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValD
 from network.models import get_xception_full, get_xception_untrained, model_selection
 import argparse
 from data_util import save_network, save_poisons, get_one_fake_ff
-from train import train_on_ff, train_full
+from train import train_on_ff, train_full, train_transfer
 from datetime import datetime
 import os
 from torchvision.utils import save_image
 from torchvision import transforms
 
-def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path):
+def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path, transfer):
     '''
     Main function to run a poisoning attack on the Xception network.
     Args:
@@ -23,6 +23,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         max_base_distance: Maximum distance between base and target (when not having preselected bases)
         n_bases: Number of base images to create (when not having preselected bases)
         model_path: Path to model to use for attack
+        transfer: Whether to use transfer learning in attack
     Does not return anything but will create files with data and prints results.
     '''
     print('Starting poison attack')
@@ -68,9 +69,12 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     save_poisons(poisons)
 
     # Poisoning network and eval
-    untrained_network = get_xception_untrained()
-    untrained_network.to(device)
-    poisoned_network = train_full_poisoned(untrained_network, device, name=network_name, target=preprocess(target))
+    if not transfer:
+        untrained_network = get_xception_untrained()
+        untrained_network.to(device)
+        poisoned_network = train_full_poisoned(untrained_network, device, name=network_name, target=preprocess(target))
+    else:
+        poisoned_network = train_transfer(network, device, name=network_name, target=preprocess(target))
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
     eval_network(poisoned_network, device)
 
@@ -313,8 +317,9 @@ if __name__ == "__main__":
     p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
     p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
+    p.add_argument('--transfer', action='store_true', help='Whether to use transfer learning')
     args = p.parse_args()
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    main(device, args.max_iters, args.beta, args.poison_lr, args.pretrained, args.preselected_bases, args.min_base_score, args.max_base_distance, args.n_bases, args.model_path)
+    main(device, args.max_iters, args.beta, args.poison_lr, args.pretrained, args.preselected_bases, args.min_base_score, args.max_base_distance, args.n_bases, args.model_path, args.transfer)
