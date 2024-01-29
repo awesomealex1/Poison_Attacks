@@ -41,16 +41,16 @@ class TrainDataset(torch.utils.data.Dataset):
         img = imread(img_name)
         b = time.time()
         print((b-a)*32)
-        a = time.time()
         if self.prepare:
-            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+            a = time.time()
+            p = prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+            b = time.time()
+            print("XXXXXX", (b-a)*32)
+            return p
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = pil_image.fromarray(img)
         to_tensor = transforms.Compose([transforms.ToTensor()])
         img = to_tensor(img)
-        b = time.time()
-        print("$$$$$",(b-a)*32)
-        print("######")
         return img, self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
