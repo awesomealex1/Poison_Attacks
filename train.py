@@ -39,7 +39,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=16)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8)
     best_score = None
     best_network = None
 
@@ -47,10 +47,12 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         pb = tqdm(total=len(data_loader))
         start = time.time()
         total = 0
+        total2 = 0
         for i, (image, label) in enumerate(data_loader, 0):
             end = time.time()
             #print(end-start)
             total += end-start
+            start = time.time()
             if i % 100 == 1:
                 print(total/i)
             optimizer.zero_grad()
@@ -60,6 +62,10 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
+            end = time.time()
+            total2 += end-start
+            if i % 100 == 1:
+                print(total2/i)
             start = time.time()
         pb.close()
 
