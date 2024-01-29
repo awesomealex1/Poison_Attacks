@@ -49,7 +49,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         total = 0
         for i, (image, label) in enumerate(data_loader, 0):
             end = time.time()
-            print(end-start)
+            #print(end-start)
             total += end-start
             if i % 100 == 1:
                 print(total/i)

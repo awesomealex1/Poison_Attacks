@@ -41,12 +41,12 @@ class TrainDataset(torch.utils.data.Dataset):
         a = time.time()
         img = pil_open(img_name)
         b = time.time()
-        print((b-a)*32)
+        #print((b-a)*32)
         if self.prepare:
             a = time.time()
             p = prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             b = time.time()
-            print("XXXXXX", (b-a)*32)
+            #print("XXXXXX", (b-a)*32)
             return p
         #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = img.convert("RGB")
