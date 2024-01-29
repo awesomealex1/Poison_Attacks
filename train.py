@@ -3,6 +3,7 @@ import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
+import time
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -44,7 +45,14 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
 
     for epoch in range(epochs):
         pb = tqdm(total=len(data_loader))
+        start = time.time()
+        total = 0
         for i, (image, label) in enumerate(data_loader, 0):
+            end = time.time()
+            print(end-start)
+            total += end-start
+            if i % 100 == 1:
+                print(total/i)
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
@@ -52,6 +60,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
+            start = time.time()
         pb.close()
 
         save_network(network, f'{name}{epoch}')
@@ -66,7 +75,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
 
 def randomize_last_layer(layer):
     if isinstance(layer, nn.Linear):
-        torch.nn.init.xavier_uniform(layer.weight)
+        torch.nn.init.xavier_uniform_(layer.weight)
         layer.bias.data.fill_(0.01)
 
 def freeze_all_but_last_layer(network):
