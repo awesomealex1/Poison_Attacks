@@ -10,6 +10,7 @@ from PIL import Image as pil_image
 import json
 import dlib
 from torchvision import transforms
+import time
 
 DATASET_PATHS = {
     'original_youtube': 'original_sequences/youtube/c23/images',
@@ -36,7 +37,10 @@ class TrainDataset(torch.utils.data.Dataset):
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             return img, self.labels[idx]
+        a = time.time()
         img = imread(img_name)
+        b = time.time()
+        print((b-a)*32)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
