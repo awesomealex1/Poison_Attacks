@@ -55,7 +55,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             pb.update(1)
             break
         pb.close()
-
+        print("TESTTT")
         save_network(network, f'{name}{epoch}')
         fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target, fraction_to_eval=0.5)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
