@@ -45,23 +45,13 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
 
     for epoch in range(epochs):
         pb = tqdm(total=len(data_loader))
-        start = time.time()
-        total = 0
-        total2 = 0
         for i, (image, label) in enumerate(data_loader, 0):
-            end = time.time()
-            #print(end-start)
-            total += end-start
-            if i % 100 == 1:
-                print(total/i)
             optimizer.zero_grad()
-            image,label = image.to(device), label.to(device)
             outputs = network(image)
             loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
             pb.update(1)
-            start = time.time()
         pb.close()
 
         save_network(network, f'{name}{epoch}')
