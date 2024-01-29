@@ -219,7 +219,7 @@ def prepare_image(img, transform):
     #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.convert("RGB")
     #img = transform(pil_image.fromarray(img))
-    return img
+    return transform(img)
 
 def get_data_labels_from_split(split_path):
     root_dir = 'data/ff'
