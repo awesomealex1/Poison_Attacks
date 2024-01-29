@@ -7,6 +7,7 @@ import shutil
 import tqdm
 import cv2
 from PIL import Image as pil_image
+from PIL.Image import open as pil_open
 import json
 import dlib
 from torchvision import transforms
@@ -38,7 +39,7 @@ class TrainDataset(torch.utils.data.Dataset):
                 return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             return img, self.labels[idx]
         a = time.time()
-        img = imread(img_name)
+        img = pil_open(img_name)
         b = time.time()
         print((b-a)*32)
         if self.prepare:
