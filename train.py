@@ -53,11 +53,10 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
-            break
         pb.close()
         print("TESTTT")
         save_network(network, f'{name}{epoch}')
-        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target, fraction_to_eval=0.5)
+        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -87,7 +86,7 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, file_name='results.txt', target=None, fraction_to_eval=1.0):
+def eval_network(network, device, batch_size=100, file_name='results.txt', target=None, fraction_to_eval=1):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     print('Loading Test Set')
