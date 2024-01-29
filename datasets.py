@@ -50,6 +50,7 @@ class TrainDataset(torch.utils.data.Dataset):
         img = to_tensor(img)
         b = time.time()
         print("$$$$$",(b-a)*32)
+        print("######")
         return img, self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
