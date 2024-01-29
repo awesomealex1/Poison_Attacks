@@ -289,20 +289,13 @@ class Flatten(torch.nn.Module):
 def get_headless_network(network):
     '''Returns the network without the last layer.'''
     layer_cake = list(network.model.children())
-    headless_network = torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
-    return headless_network
-
-def get_feature_space(network):
-    '''Returns the image to feature space pipeline of the network.'''
-    headless = get_headless_network(network)
-    return lambda x: headless(preprocess(x))
+    return torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
 
 def preprocess(img):
     transform = transforms.Compose([
         transforms.Resize((299, 299)),
         transforms.Normalize([0.5]*3, [0.5]*3)
     ])
-
     return transform(img)
 
 if __name__ == "__main__":

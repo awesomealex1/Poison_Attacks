@@ -38,22 +38,12 @@ class TrainDataset(torch.utils.data.Dataset):
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             return img, self.labels[idx]
-        a = time.time()
         img = pil_open(img_name)
-        b = time.time()
-        #print((b-a)*32)
         if self.prepare:
-            a = time.time()
-            p = prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
-            b = time.time()
-            #print("XXXXXX", (b-a)*32)
-            return p
-        #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
         img = img.convert("RGB")
-        #img = pil_image.fromarray(img)
         to_tensor = transforms.Compose([transforms.ToTensor()])
-        img = to_tensor(img)
-        return img, self.labels[idx]
+        return to_tensor(img), self.labels[idx]
     
 class ValDataset(torch.utils.data.Dataset):
     def __init__(self, face=False, prepare=True):
@@ -94,11 +84,13 @@ class TestDataset(torch.utils.data.Dataset):
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
             return img, self.labels[idx]
-        img = imread(img_name)
+        img = pil_open(img_name)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
-        return img, self.labels[idx]
-
+        img = img.convert("RGB")
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        return to_tensor(img), self.labels[idx]
+    
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(self, face=False, prepare=True):
         self.root_dir = 'data/bases'
@@ -214,11 +206,8 @@ def get_boundingbox(face, width, height, scale=1.3, minsize=None):
 def prepare_image(img, transform):
     if img is None:
         print(f'Could not read image')
-        #img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
         img = pil_open('data/ff/original_sequences/youtube/c23/images/970/0049.png')
-    #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.convert("RGB")
-    #img = transform(pil_image.fromarray(img))
     return transform(img)
 
 def get_data_labels_from_split(split_path):
