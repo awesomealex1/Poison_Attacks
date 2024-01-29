@@ -214,9 +214,11 @@ def get_boundingbox(face, width, height, scale=1.3, minsize=None):
 def prepare_image(img, transform):
     if img is None:
         print(f'Could not read image')
-        img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = transform(pil_image.fromarray(img))
+        #img = imread('data/ff/original_sequences/youtube/c23/images/970/0049.png')
+        img = pil_open('data/ff/original_sequences/youtube/c23/images/970/0049.png')
+    #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = img.convert("RGB")
+    #img = transform(pil_image.fromarray(img))
     return img
 
 def get_data_labels_from_split(split_path):
