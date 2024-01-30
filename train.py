@@ -119,7 +119,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
     print('Starting evaluation')
     results_file = open(file_name, 'w')
     network.eval()
-    pb = tqdm(total=len(test_loader))
+    pb = tqdm(total=len(test_loader)*fraction_to_eval)
     total_loss = 0.0
     with torch.no_grad():
         for i, (image, label) in enumerate(test_loader, 0):
