@@ -80,6 +80,9 @@ def get_processor_name():
         for line in all_info.split("\n"):
             if "model name" in line:
                 return re.sub( ".*model name.*:", "", line,1)
+        command = 'nvidia-smi'
+        subprocess.run(command) 
+
     return ""
 
 def randomize_last_layer(layer):

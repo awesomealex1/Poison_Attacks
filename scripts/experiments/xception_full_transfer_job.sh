@@ -3,7 +3,7 @@
 #$ -N xception_full_transfer         
 #$ -cwd                  
 #$ -l h_rt=48:00:00 
-#$ -l h_vmem=40G
+#$ -l h_vmem=80G
 #$ -q gpu 
 #$ -pe gpu-a100 1
 . /etc/profile.d/modules.sh
