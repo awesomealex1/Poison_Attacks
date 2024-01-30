@@ -61,11 +61,11 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         fill_bases_directory()
 
     for i in range(len(bases)):
-        save_image(bases[i], f'data/bases/base_{i}.png')
-    save_image(target, 'data/target.png')
+        save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
+    save_image(target, f'data/{network_name}/target.png')
 
     print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
-    poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device)
+    poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name)
     save_poisons(poisons)
 
     # Poisoning network and eval
@@ -76,7 +76,6 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     else:
         poisoned_network = train_transfer(network, device, name=network_name, target=preprocess(target))
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
-    eval_network(poisoned_network, device)
 
 def create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device):
     print('Creating bases')
@@ -177,7 +176,7 @@ def predict_image(network, image, device, processed=True):
 
     return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
-def feature_coll(feature_space, target, max_iters, beta, lr, network, device):
+def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=None):
     '''
     Performs feature collision attack on the target image.
     Args:
@@ -191,7 +190,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device):
         poisons: List of poisons
     '''
     poisons = []
-    base_dataset = BaseDataset(prepare=False)
+    base_dataset = BaseDataset(prepare=False, network_name=network_name)
     base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
     for i, (base,label) in enumerate(base_loader, 1):
         base, label = base.to(device), label.to(device)

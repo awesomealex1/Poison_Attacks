@@ -92,8 +92,10 @@ class TestDataset(torch.utils.data.Dataset):
         return to_tensor(img), self.labels[idx]
     
 class BaseDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True):
+    def __init__(self, face=False, prepare=True, network_name=None):
         self.root_dir = 'data/bases'
+        if network_name != None:
+            self.root_dir = f'data/bases/{network_name}'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare
