@@ -40,7 +40,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=40, pin_memory=True)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
     best_score = None
     best_network = None
 
@@ -54,8 +54,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
+            break
         pb.close()
-        print("TESTTT")
         save_network(network, f'{name}{epoch}')
         fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, file_name=f'{name}{epoch}', target=target)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
@@ -107,7 +107,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
     print('Evaluating network')
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
     print('Finished loading Test Set')
 
