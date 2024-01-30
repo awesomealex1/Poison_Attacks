@@ -63,6 +63,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
     os.makedirs(f'data/bases/{network_name}', exist_ok=True)
     for i in range(len(bases)):
         save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
+    os.makedirs(f'data/{network_name}', exist_ok=True)
     save_image(target, f'data/{network_name}/target.png')
 
     print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
