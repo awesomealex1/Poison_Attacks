@@ -16,7 +16,7 @@ def train_transfer(network, device, dataset=TrainDataset(), name='xception_full_
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
-def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=3, lr=0.0002, batch_size=32, target=None):
+def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None):
     '''
     Trains the network.
     Args:
@@ -80,9 +80,6 @@ def get_processor_name():
         for line in all_info.split("\n"):
             if "model name" in line:
                 return re.sub( ".*model name.*:", "", line,1)
-        command = 'nvidia-smi'
-        subprocess.run(command) 
-
     return ""
 
 def randomize_last_layer(layer):
