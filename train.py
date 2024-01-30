@@ -4,7 +4,7 @@ from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
 import time
-import platform
+import os, platform, subprocess, re
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -40,7 +40,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    print(platform.processor())
+    print(get_processor_name())
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=3, pin_memory=True)
     best_score = None
     best_network = None
@@ -66,6 +66,21 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     
     print(f'Best network: {best_network}')
     return network
+
+def get_processor_name():
+    if platform.system() == "Windows":
+        return platform.processor()
+    elif platform.system() == "Darwin":
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+        command ="sysctl -n machdep.cpu.brand_string"
+        return subprocess.check_output(command).strip()
+    elif platform.system() == "Linux":
+        command = "cat /proc/cpuinfo"
+        all_info = subprocess.check_output(command, shell=True).decode().strip()
+        for line in all_info.split("\n"):
+            if "model name" in line:
+                return re.sub( ".*model name.*:", "", line,1)
+    return ""
 
 def randomize_last_layer(layer):
     if isinstance(layer, nn.Linear):
