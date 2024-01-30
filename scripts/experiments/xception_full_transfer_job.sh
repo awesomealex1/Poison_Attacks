@@ -13,6 +13,6 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 # Load Python
 module load anaconda
 conda activate ff-gpu
-
+nvidia-smi
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/xception_full_transfer.sh
