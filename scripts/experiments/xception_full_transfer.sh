@@ -1,1 +1,1 @@
-python xception_full_attack_pipeline.py --model_path network/weights/xception_full_c23_trained_from_scratch_01_30_2024_14_35_53_frozen1.p --transfer --max_iters 1
+python xception_full_attack_pipeline.py --model_path network/weights/xception_full_c23_trained_from_scratch_unfrozen_jan22_1.p --transfer --max_iters 1
