@@ -312,7 +312,7 @@ if __name__ == "__main__":
     p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
     p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=9000)
     p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-    p.add_argument('--n_bases', type=int, help='Number of base images to create', default=30)
+    p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
     p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
     p.add_argument('--transfer', action='store_true', help='Whether to use transfer learning')
     args = p.parse_args()
