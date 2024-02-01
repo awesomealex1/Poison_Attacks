@@ -128,14 +128,14 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
             for i, pred in enumerate(prediction, 0):
                 real_score = pred[0].item()
                 fake_score = pred[1].item()
-                results_file.write(f'{real_score} {fake_score} {label[i].item()} \n')
-                if real_score > fake_score and label[i].item() == 0:
+                results_file.write(f'{real_score} {fake_score} {label[j].item()} \n')
+                if real_score > fake_score and label[j].item() == 0:
                     real_correct += 1
-                elif real_score < fake_score and label[i].item() == 0:
+                elif real_score < fake_score and label[j].item() == 0:
                     real_incorrect += 1
-                elif real_score > fake_score and label[i].item() == 1:
+                elif real_score > fake_score and label[j].item() == 1:
                     fake_incorrect += 1
-                elif real_score < fake_score and label[i].item() == 1:
+                elif real_score < fake_score and label[j].item() == 1:
                     fake_correct += 1
             total_loss += loss.item()
             pb.update(1)
