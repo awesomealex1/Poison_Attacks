@@ -297,7 +297,7 @@ if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.1)
-	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=1000)
+	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--pretrained', action='store_true', help='Whether to use FF++ provided pretrained network')
 	p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
