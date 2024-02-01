@@ -120,8 +120,10 @@ class BaseDataset(torch.utils.data.Dataset):
         return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True):
+    def __init__(self, face=False, prepare=True, network_name=None):
         self.root_dir = 'data/poisons'
+        if network_name != None:
+            self.root_dir = f'data/poisons/{network_name}'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare

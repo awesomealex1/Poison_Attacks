@@ -45,14 +45,14 @@ def save_network(network, name):
     torch.save(network, f'network/weights/{name}.p')
     print(f'Saved network as {name}')
 
-def save_poisons(poisons):
+def save_poisons(poisons, network_name):
     '''
     Saves poisons to data/poisons directory.
     Args:
         poisons: List of images
     '''
     print('Saving poisons')
-    os.makedirs('data/poisons', exist_ok=True)
+    os.makedirs(f'data/poisons/{network_name}', exist_ok=True)
     for i, poison in enumerate(poisons):
-        save_image(poison[0], f'data/poisons/poison_{i}.png')
+        save_image(poison[0], f'data/poisons/{network_name}/poison_{i}.png')
     print('Finished saving poisons')

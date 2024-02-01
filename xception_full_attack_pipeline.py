@@ -68,7 +68,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 
     print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
     poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name)
-    save_poisons(poisons)
+    save_poisons(poisons, network_name)
 
     # Poisoning network and eval
     if not transfer:
@@ -76,7 +76,10 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
         untrained_network.to(device)
         poisoned_network = train_full_poisoned(untrained_network, device, name=network_name, target=preprocess(target))
     else:
-        poisoned_network = train_transfer(network, device, name=network_name, target=preprocess(target))
+        poison_dataset = PoisonDataset(network_name=network_name)
+        train_dataset = TrainDataset()
+        merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
+        poisoned_network = train_transfer(network, device, dataset=merged_dataset, name=network_name, target=preprocess(target))
     print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
 
 def create_bases(min_base_score, max_base_distance, n_bases, feature_space, target, network, device):
@@ -101,10 +104,10 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
     pbar.close()
     return base_images
 
-def train_full_poisoned(network, device, name, target=None):
+def train_full_poisoned(network, device, name, target=None, network_name=None):
     '''Retrains with poisons from scratch (not trained on FF++).'''
     print('Retraining with poisons from scratch')
-    poison_dataset = PoisonDataset()
+    poison_dataset = PoisonDataset(network_name=network_name)
     train_dataset = TrainDataset()
     merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
     network = train_full(network, device, dataset=merged_dataset, name=name, target=target)
