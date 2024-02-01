@@ -125,7 +125,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
             image, label = image.to(device), label.to(device)
             prediction = network(image)
             loss = criterion(prediction, label)
-            for i, pred in enumerate(prediction, 0):
+            for j, pred in enumerate(prediction, 0):
                 real_score = pred[0].item()
                 fake_score = pred[1].item()
                 results_file.write(f'{real_score} {fake_score} {label[j].item()} \n')
