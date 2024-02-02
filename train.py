@@ -106,7 +106,7 @@ def eval_network(network, device, batch_size=100, file_name='results.txt', targe
     print('Evaluating network')
     print('Loading Test Set')
     test_dataset = TestDataset()
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
     print('Finished loading Test Set')
 
