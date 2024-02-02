@@ -105,53 +105,6 @@ def create_bases(min_base_score, max_base_distance, n_bases, feature_space, targ
 	pbar.close()
 	return base_images
 
-def eval_network(network, device, batch_size=100, file_name='results.txt'):
-	'''Evaluates the network performance on test set.'''
-	print('Evaluating network')
-	print('Loading Test Set')
-	test_dataset = TestDataset()
-	test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-	criterion = torch.nn.CrossEntropyLoss()
-	print('Finished loading Test Set')
-
-	fake_correct = 0
-	fake_incorrect = 0
-	real_correct = 0
-	real_incorrect = 0
-
-	print('Starting evaluation')
-	results_file = open(file_name, 'w')
-	network.eval()
-	pb = tqdm(total=len(test_loader))
-	total_loss = 0.0
-	with torch.no_grad():
-		for i, (image, label) in enumerate(test_loader, 0):
-			image, label = image.to(device), label.to(device)
-			prediction = network(image)
-			loss = criterion(prediction, label)
-			for i, pred in enumerate(prediction, 0):
-				real_score = pred[0].item()
-				fake_score = pred[1].item()
-				results_file.write(f'{real_score} {fake_score} {label[i].item()} \n')
-				if real_score > fake_score and label[i].item() == 0:
-					real_correct += 1
-				elif real_score < fake_score and label[i].item() == 0:
-					real_incorrect += 1
-				elif real_score > fake_score and label[i].item() == 1:
-					fake_incorrect += 1
-				elif real_score < fake_score and label[i].item() == 1:
-					fake_correct += 1
-			total_loss += loss.item()
-			pb.update(1)
-			if device.type == 'cuda':
-				torch.cuda.empty_cache()
-	pb.close()
-	results_file.write(f'{real_correct} {fake_correct} {real_incorrect} {fake_incorrect} {total_loss}')
-	results_file.close()
-
-	print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
-	return fake_correct, fake_incorrect, real_correct, real_incorrect
-
 def predict_image(network, image, device, processed=True):
 	'''
 	Predicts the label of an input image.
@@ -216,7 +169,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-		#print(target, preprocess(target), target.size(), base, preprocess(base), base.size())
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2 = preprocess(target)
 		x2 = preprocess(x)
