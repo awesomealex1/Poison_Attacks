@@ -138,10 +138,12 @@ class PoisonDataset(torch.utils.data.Dataset):
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), 0
             return img, 0
-        img = imread(img_name)
+        img = pil_open(img_name)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
-        return img, 0
+        img = img.convert("RGB")
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        return to_tensor(img), 0
 
 def get_face(img_name):
     img = imread(img_name)
