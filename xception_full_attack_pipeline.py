@@ -175,15 +175,16 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		base2 = preprocess(base)
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
-
-		print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
-		print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-		print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+		if i == max_iters-1 or i == 0:
+			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
+			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
-
-		print(new_obj)
+		
+		if i == max_iters-1 or i == 0:
+			print(new_obj)
 
 		if new_obj >= avg_of_last_M and (i % M/2 == 0):
 			lr *= decay_coef
@@ -255,7 +256,7 @@ if __name__ == "__main__":
 	p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
 	p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=9000)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
+	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=2)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
 	p.add_argument('--transfer', action='store_true', help='Whether to use transfer learning')
 	args = p.parse_args()
