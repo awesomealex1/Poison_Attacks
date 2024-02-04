@@ -155,7 +155,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
 			if dist <= max_poison_distance:
 				poisons.append(poison)
-				print(f'Poison {i}/{len(base_dataset)} created')
+				print(f'Poison {len(poisons)}/{len(base_dataset)} created')
 			else:
 				print(f'Poison was too far from target in features space: {dist}')
 	return poisons
