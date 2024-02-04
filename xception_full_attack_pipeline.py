@@ -1,6 +1,6 @@
 import torch
 from tqdm import tqdm
-from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory, get_random_fake
+from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory, get_random_fake, get_random_real
 from network.models import get_xception_full, get_xception_untrained, model_selection
 import argparse
 from data_util import save_network, save_poisons, get_one_fake_ff
@@ -10,7 +10,7 @@ import os
 from torchvision.utils import save_image
 from torchvision import transforms
 
-def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path, transfer):
+def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_score, max_base_distance, n_bases, model_path, transfer, max_poison_distance):
 	'''
 	Main function to run a poisoning attack on the Xception network.
 	Args:
@@ -67,7 +67,7 @@ def main(device, max_iters, beta_0, lr, pretrained, preselected_bases, min_base_
 	save_image(target, f'data/{network_name}/target.png')
 
 	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
-	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name)
+	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=max_poison_distance, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
 	poison_dataset = PoisonDataset(network_name=network_name)
@@ -125,7 +125,7 @@ def predict_image(network, image, device, processed=True):
 
 	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
-def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=None):
+def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
 	'''
 	Performs feature collision attack on the target image.
 	Args:
@@ -139,13 +139,25 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 		poisons: List of poisons
 	'''
 	poisons = []
-	base_dataset = BaseDataset(prepare=False, network_name=network_name)
-	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
-	for i, (base,label) in enumerate(base_loader, 1):
-		base, label = base.to(device), label.to(device)
-		poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
-		poisons.append(poison)
-		print(f'Poison {i}/{len(base_dataset)} created')
+	if max_poison_distance < 0:
+		base_dataset = BaseDataset(prepare=False, network_name=network_name)
+		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
+		for i, (base,label) in enumerate(base_loader, 1):
+			base, label = base.to(device), label.to(device)
+			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
+			poisons.append(poison)
+			print(f'Poison {i}/{len(base_dataset)} created')
+	else:
+		while len(poisons) < n_bases:
+			base, label = get_random_real(), 0
+			base, label = base.to(device), label.to(device)
+			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
+			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
+			if dist <= max_poison_distance:
+				poisons.append(poison)
+				print(f'Poison {i}/{len(base_dataset)} created')
+			else:
+				print(f'Poison was too far from target in features space: {dist}')
 	return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
@@ -259,8 +271,9 @@ if __name__ == "__main__":
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=3)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
 	p.add_argument('--transfer', action='store_true', help='Whether to use transfer learning')
+	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
 	
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-	main(device, args.max_iters, args.beta, args.poison_lr, args.pretrained, args.preselected_bases, args.min_base_score, args.max_base_distance, args.n_bases, args.model_path, args.transfer)
+	main(device, args.max_iters, args.beta, args.poison_lr, args.pretrained, args.preselected_bases, args.min_base_score, args.max_base_distance, args.n_bases, args.model_path, args.transfer, args.max_poison_distance)

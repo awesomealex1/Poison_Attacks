@@ -246,12 +246,25 @@ def get_random_fake():
     video_paths = []
     for name, path in DATASET_PATHS.items():
         if name != 'original_youtube':
-            video_paths = os.listdir(os.path.join(root_dir, path))
+            video_paths += os.listdir(os.path.join(root_dir, path))
     
     random_vid = video_paths[np.random.randint(len(video_paths))]
     images = os.listdir(os.path.join(root_dir, path, random_vid))
     random_image = images[np.random.randint(len(images))]
     image = imread(os.path.join(root_dir, path, random_vid, random_image))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    pil_image.fromarray(image)
+    to_tensor = transforms.Compose([transforms.ToTensor()])
+    return torch.unsqueeze(to_tensor(image), 0)
+
+def get_random_real():
+    real_dir = 'data/ff/original_sequences/youtube/c23/images'
+    video_paths = os.listdir(real_dir)
+    
+    random_vid = video_paths[np.random.randint(len(video_paths))]
+    images = os.listdir(os.path.join(real_dir, random_vid))
+    random_image = images[np.random.randint(len(images))]
+    image = imread(os.path.join(real_dir, random_vid, random_image))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     pil_image.fromarray(image)
     to_tensor = transforms.Compose([transforms.ToTensor()])
