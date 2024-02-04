@@ -149,7 +149,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
 		while len(poisons) < n_bases:
-			base, label = get_random_real(), 0
+			base, label = get_random_real(), torch.Tensor(0)
 			base, label = base.to(device), label.to(device)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
