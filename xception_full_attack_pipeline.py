@@ -148,6 +148,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
+		i = 0
 		while len(poisons) < n_bases:
 			base, label = get_random_real(), torch.Tensor(0)
 			base, label = base.to(device), label.to(device)
@@ -158,6 +159,9 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				print(f'Poison {len(poisons)}/{n_bases} created')
 			else:
 				print(f'Poison was too far from target in features space: {dist}')
+			i += 1
+			if i % 10 == 0:
+				max_poison_distance += 5
 	return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
@@ -268,7 +272,7 @@ if __name__ == "__main__":
 	p.add_argument('--preselected_bases', action='store_true', help='Whether to use a txt file with base images')
 	p.add_argument('--max_base_distance', type=float, help='Maximum distance between base and target', default=9000)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
+	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=5)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default=None)
 	p.add_argument('--transfer', action='store_true', help='Whether to use transfer learning')
 	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=50)
