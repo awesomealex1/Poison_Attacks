@@ -62,10 +62,12 @@ class ValDataset(torch.utils.data.Dataset):
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
             return img, self.labels[idx]
-        img = imread(img_name)
+        img = pil_open(img_name)
         if self.prepare:
             return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
-        return img, self.labels[idx]
+        img = img.convert("RGB")
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        return to_tensor(img), self.labels[idx]
     
 class TestDataset(torch.utils.data.Dataset):
     def __init__(self, face=False, prepare=True):
