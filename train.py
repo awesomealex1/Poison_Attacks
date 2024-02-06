@@ -3,7 +3,7 @@ import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
-from experiment_util import save_training_epoch, save_validation_epoch
+from experiment_util import save_training_epoch, save_validation_epoch, save_test
 import os, platform, subprocess, re
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
@@ -45,6 +45,11 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     best_network = None
     total_loss = 0.0
 
+    fake_correct = 0
+    fake_incorrect = 0
+    real_correct = 0
+    real_incorrect = 0
+
     for epoch in range(epochs):
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
@@ -52,6 +57,17 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             image,label = image.to(device), label.to(device)
             outputs = network(image)
             loss = criterion(outputs, label)
+            for j, pred in enumerate(outputs, 0):
+                real_score = pred[0].item()
+                fake_score = pred[1].item()
+                if real_score > fake_score and label[j].item() == 0:
+                    real_correct += 1
+                elif real_score < fake_score and label[j].item() == 0:
+                    real_incorrect += 1
+                elif real_score > fake_score and label[j].item() == 1:
+                    fake_incorrect += 1
+                elif real_score < fake_score and label[j].item() == 1:
+                    fake_correct += 1
             total_loss += loss.item()
             loss.backward()
             optimizer.step()
@@ -59,8 +75,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         pb.close()
         total_loss /= len(data_loader)
         save_network(network, f'{name}{epoch}')
-        fake_correct, fake_incorrect, real_correct, real_incorrect = eval_network(network, device, name=f'{name}{epoch}', target=target, fraction_to_eval=1)
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
+        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -105,26 +121,23 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1):
+def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
-    print('Loading Test Set')
     val_dataset = ValDataset()
-    val_dataset = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
-    print('Finished loading Test Set')
 
     fake_correct = 0
     fake_incorrect = 0
     real_correct = 0
     real_incorrect = 0
 
-    print('Starting evaluation')
     network.eval()
-    pb = tqdm(total=len(val_dataset)*fraction_to_eval)
+    pb = tqdm(total=len(val_loader)*fraction_to_eval)
     total_loss = 0.0
     with torch.no_grad():
-        for i, (image, label) in enumerate(val_dataset, 0):
+        for i, (image, label) in enumerate(val_loader, 0):
             image, label = image.to(device), label.to(device)
             prediction = network(image)
             loss = criterion(prediction, label)
@@ -143,12 +156,57 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
             pb.update(1)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
-            if i > len(val_dataset)*fraction_to_eval:
+            if i > len(val_loader)*fraction_to_eval:
                 break
         if target != None:
             print('Target prediction:', network(target.to(device)))
     pb.close()
-    total_loss /= len(val_dataset)
-    save_validation_epoch(name, 0, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
+    total_loss /= len(val_loader)
+    save_validation_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
+    print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
+    return fake_correct, fake_incorrect, real_correct, real_incorrect
+
+def eval_network_test(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1):
+    '''Evaluates the network performance on test set.'''
+    print('Evaluating network')
+    test_dataset = TestDataset()
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
+    criterion = torch.nn.CrossEntropyLoss()
+
+    fake_correct = 0
+    fake_incorrect = 0
+    real_correct = 0
+    real_incorrect = 0
+
+    network.eval()
+    pb = tqdm(total=len(test_loader)*fraction_to_eval)
+    total_loss = 0.0
+    with torch.no_grad():
+        for i, (image, label) in enumerate(test_loader, 0):
+            image, label = image.to(device), label.to(device)
+            prediction = network(image)
+            loss = criterion(prediction, label)
+            for j, pred in enumerate(prediction, 0):
+                real_score = pred[0].item()
+                fake_score = pred[1].item()
+                if real_score > fake_score and label[j].item() == 0:
+                    real_correct += 1
+                elif real_score < fake_score and label[j].item() == 0:
+                    real_incorrect += 1
+                elif real_score > fake_score and label[j].item() == 1:
+                    fake_incorrect += 1
+                elif real_score < fake_score and label[j].item() == 1:
+                    fake_correct += 1
+            total_loss += loss.item()
+            pb.update(1)
+            if device.type == 'cuda':
+                torch.cuda.empty_cache()
+            if i > len(test_loader)*fraction_to_eval:
+                break
+        if target != None:
+            print('Target prediction:', network(target.to(device)))
+    pb.close()
+    total_loss /= len(test_loader)
+    save_test(name, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
