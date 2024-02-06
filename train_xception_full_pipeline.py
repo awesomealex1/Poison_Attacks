@@ -14,7 +14,7 @@ def main(device):
 	'''
 	print('Starting xception full training')
 
-	network = get_xception_untrained(device)
+	network = get_xception_untrained()
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_full_c23_trained_from_scratch_{day_time}'
