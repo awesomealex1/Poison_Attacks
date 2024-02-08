@@ -11,8 +11,13 @@ def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
 
+def train_face(network, device, dataset=TrainDataset(), name='xception_face_c23_trained_from_scratch', target=None):
+    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
+    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
+    return network
+
 def train_transfer(network, device, dataset=TrainDataset(), name='xception_full_transfer_c23', target=None):
-    network.apply(randomize_last_layer)
+    #network.apply(randomize_last_layer)
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
@@ -43,14 +48,14 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
     best_score = None
     best_network = None
-    total_loss = 0.0
 
-    fake_correct = 0
-    fake_incorrect = 0
-    real_correct = 0
-    real_incorrect = 0
 
     for epoch in range(epochs):
+        total_loss = 0.0
+        fake_correct = 0
+        fake_incorrect = 0
+        real_correct = 0
+        real_incorrect = 0
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()

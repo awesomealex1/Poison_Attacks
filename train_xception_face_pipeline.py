@@ -1,23 +1,23 @@
 import torch
 from network.models import get_xception_untrained
-from train import train_full
+from train import train_face
 from datetime import datetime
 from train import eval_network_test
 
 def main(device):
 	'''
-	Main function to train xception full image.
+	Main function to train xception on face images.
 	Args:
 		device: cuda or cpu
 	Does not return anything but will create files with data and prints results.
 	'''
-	print('Starting xception full training')
+	print('Starting xception face training')
 
 	network = get_xception_untrained()
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-	network_name = f'xception_full_c23_trained_from_scratch_{day_time}'
-	network = train_full(network, device, name=network_name)
+	network_name = f'xception_face_c23_trained_from_scratch_{day_time}'
+	network = train_face(network, device, name=network_name)
 	eval_network_test(network, device, name=network_name)
 
 if __name__ == "__main__":
