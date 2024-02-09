@@ -24,12 +24,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	'''
 	print('Starting baseline poison attack')
 
-	print(model_path)
-	print(os.path.isfile(model_path))
 	network = torch.load(model_path, map_location=device)
-
 	network = network.to(device)
-
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_full_c23_baseline_attack_{day_time}'
 	
@@ -245,7 +241,7 @@ if __name__ == "__main__":
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='weights/models/xception_full.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
 	args = p.parse_args()
 	
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

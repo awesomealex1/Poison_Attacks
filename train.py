@@ -5,6 +5,7 @@ from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test
 import os, platform, subprocess, re
+from torchvision import transforms
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -81,6 +82,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         total_loss /= len(data_loader)
         save_network(network, f'{name}{epoch}')
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
+
         eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
@@ -164,7 +166,9 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
             if i > len(val_loader)*fraction_to_eval:
                 break
         if target != None:
-            print('Target prediction:', network(target.to(device)))
+            print('Target scores:', network(target.to(device)))
+            print('Target prediction:', predict_image(network, target, device, processed=False))
+
     pb.close()
     total_loss /= len(val_loader)
     save_validation_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
@@ -215,3 +219,30 @@ def eval_network_test(network, device, batch_size=100, name='xception_full_c23_t
     save_test(name, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
+
+def preprocess(img):
+	transform = transforms.Compose([
+		transforms.Resize((299, 299)),
+		transforms.Normalize([0.5]*3, [0.5]*3)
+	])
+	return transform(img)
+
+def predict_image(network, image, device, processed=True):
+	'''
+	Predicts the label of an input image.
+	Args:
+		image: numpy image
+		network: torch model with linear layer at the end
+	Returns:
+		prediction (1 = fake, 0 = real)
+		output: Output of network
+	'''
+	if not processed:
+		image = preprocess(image)
+	post_function = torch.nn.Softmax(dim = 1)
+	image = image.to(device)
+	output = network(image)
+	output = post_function(output)
+	_, prediction = torch.max(output, 1)    # argmax
+
+	return int(prediction.item()), output  # If prediction is 1, then fake, else real
