@@ -14,7 +14,7 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 module load anaconda
 conda activate ff-gpu
 
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+pip3 install torch torchvision torchaudio
 
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline/attack_xception_full.sh
