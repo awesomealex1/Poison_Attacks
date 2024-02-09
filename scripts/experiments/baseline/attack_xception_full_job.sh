@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N attack_xception_full)_baseline
+#$ -N attack_xception_full_baseline
 #$ -cwd                  
 #$ -l h_rt=48:00:00 
 #$ -l h_vmem=80G
@@ -13,6 +13,8 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 # Load Python
 module load anaconda
 conda activate ff-gpu
+
+nvidia-smi
 
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline/attack_xception_full.sh
