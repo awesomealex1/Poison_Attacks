@@ -42,7 +42,6 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
     network = torch.load(model_path, map_location=device)
     network = network.to(device)
     target = delete()
-    eval_network(network, device, target=target, name='xception_full_c23_baseline_attack_02_10_2024_23_31_49', fraction_to_eval=0.001)
     with torch.no_grad():
         network.eval()
         print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
