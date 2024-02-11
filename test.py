@@ -37,14 +37,15 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting baseline poison attack')
-
-	network = torch.load(model_path, map_location=device)
-	network = network.to(device)
-	target = delete()
-	network.eval()
-	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
-	network.train()
-	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
+	
+    network = torch.load(model_path, map_location=device)
+    network = network.to(device)
+    target = delete()
+    with torch.no_grad():
+        network.eval()
+        print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
+        network.train()
+        print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
 
 def delete():
     image = imread("/exports/eddie/scratch/s2017377/Poison_Attacks/data/targets/xception_full_c23_baseline_attack_02_10_2024_23_31_49/target.png")
