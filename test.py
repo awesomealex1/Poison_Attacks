@@ -25,19 +25,19 @@ from torchvision import transforms
 import time
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
-	'''
-	Main function to run a poisoning attack on the Xception network.
-	Args:
-		device: cuda or cpu
-		max_iters: Maximum number of iterations to create one poison
-		beta_0: beta 0 from poison frogs paper
-		lr: Learning rate for poison creation
-		n_bases: Number of base images to create (when not having preselected bases)
-		model_path: Path to model to use for attack
-	Does not return anything but will create files with data and prints results.
-	'''
-	print('Starting baseline poison attack')
-	
+    '''
+    Main function to run a poisoning attack on the Xception network.
+    Args:
+        device: cuda or cpu
+        max_iters: Maximum number of iterations to create one poison
+        beta_0: beta 0 from poison frogs paper
+        lr: Learning rate for poison creation
+        n_bases: Number of base images to create (when not having preselected bases)
+        model_path: Path to model to use for attack
+    Does not return anything but will create files with data and prints results.
+    '''
+    print('Starting baseline poison attack')
+    
     network = torch.load(model_path, map_location=device)
     network = network.to(device)
     target = delete()
