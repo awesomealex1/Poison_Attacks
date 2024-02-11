@@ -238,7 +238,7 @@ if __name__ == "__main__":
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_baseline_attack_02_10_2024_23_31_49_frozen2.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_full_c23_baseline_attack_02_10_2024_23_31_49_frozen2.p')
 	args = p.parse_args()
 	
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
