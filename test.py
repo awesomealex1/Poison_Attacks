@@ -47,7 +47,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
         print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
         network.train()
         print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
-        network(target)
+        print(network(target))
 
 def delete():
     image = imread("/exports/eddie/scratch/s2017377/Poison_Attacks/data/targets/xception_full_c23_baseline_attack_02_10_2024_23_31_49/target.png")
