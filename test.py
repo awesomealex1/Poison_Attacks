@@ -41,7 +41,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
     
     network = torch.load(model_path, map_location=device)
     network = network.to(device)
-    target = delete()
+    target = preprocess(delete())
     real = get_random_real()
     with torch.no_grad():
         network.eval()
