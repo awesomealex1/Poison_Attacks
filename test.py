@@ -42,11 +42,15 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
     network = torch.load(model_path, map_location=device)
     network = network.to(device)
     target = delete()
+    real = get_random_real()
     with torch.no_grad():
         network.eval()
         print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=True)}')
         network.train()
         print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
+        print(f'Target prediction after retraining from scratch: {predict_image(network, real, device, processed=True)}')
+        network.train()
+        print(f'Target prediction after retraining from scratch: {predict_image(network, real, device, processed=False)}')
         print(network(target))
 
 def delete():
