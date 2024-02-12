@@ -54,7 +54,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
         print(network(target))
 
 def delete():
-    image = imread("/exports/eddie/scratch/s2017377/Poison_Attacks/data/targets/xception_full_c23_baseline_attack_02_10_2024_23_31_49/target.png")
+    image = imread("/exports/eddie/scratch/s2017377/Poison_Attacks/data/targets/xception_full_c23_baseline_attack_02_12_2024_17_31_45/target.png")
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     pil_image.fromarray(image)
     to_tensor = transforms.Compose([transforms.ToTensor()])
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_full_c23_baseline_attack_02_10_2024_23_31_49_frozen0.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_full_c23_baseline_attack_02_12_2024_17_31_45_frozen0.p')
 	args = p.parse_args()
 	
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
