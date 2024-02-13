@@ -166,9 +166,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			network(x)
 		except Exception as e:
 			print("FFFFFF",e)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
+		target2 = target
+		x2 = x
+		base2 = base
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
 		if i == max_iters-1 or i == 0:
