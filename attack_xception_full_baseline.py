@@ -23,7 +23,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting baseline poison attack')
-
+	torch.cuda.empty_cache()
 	network = torch.load(model_path, map_location=device)
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
