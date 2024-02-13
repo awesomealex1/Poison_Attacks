@@ -203,8 +203,8 @@ def forward(feature_space, target, x, lr):
 	'''Performs forward pass.'''
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-	target_space = loss_feature_space(target)
-	x_space = loss_feature_space(x)
+	target_space = loss_feature_space(feature_space, target)
+	x_space = loss_feature_space(feature_space, x)
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
 
 	loss_feature_space.zero_grad()
