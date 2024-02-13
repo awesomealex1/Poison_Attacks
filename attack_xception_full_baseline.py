@@ -23,7 +23,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting baseline poison attack')
-	torch.cuda.empty_cache()
+
 	network = torch.load(model_path, map_location=device)
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
@@ -37,8 +37,6 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	while predict_image(network, target, device, processed=False)[1][0][1].item() <= 0.9:
 		target = get_random_fake()
 		target = target.to(device)
-	
-	print("DDDD", target.size())
 
 	bases = create_bases(min_base_score, n_bases, network, device)
 
@@ -49,15 +47,9 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	save_image(target, f'data/targets/{network_name}/target.png')
 
 	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
-	print(f'Original target prediction2: {predict_image(network, preprocess(bases[0]), device, processed=False)}')
-	print(f'Original target prediction2: {predict_image(network, preprocess(bases[0]), device, processed=True)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
-	print(torch.norm(preprocess(poisons[0]) - preprocess(target)))
-	print(torch.norm(preprocess(preprocess(poisons[0])) - preprocess(preprocess(target))))
-	print(torch.norm(feature_space(preprocess(poisons[0])) - feature_space(preprocess(target))))
-	print(torch.norm(feature_space(preprocess(preprocess(poisons[0]))) - feature_space(preprocess(preprocess(target)))))
-	print(torch.norm(feature_space(preprocess(poisons[0])) - feature_space(preprocess(preprocess(target)))))
+
 	poison_dataset = PoisonDataset(network_name=network_name)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
@@ -65,17 +57,6 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	# Poisoning network and eval
 	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=preprocess(target))
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
-	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, preprocess(target), device, processed=False)}')
-	print(predict_image(poisoned_network, preprocess(target), device, processed=True))
-	print(torch.nn.Softmax(dim = 1)(poisoned_network(preprocess(target))))
-	print(network(preprocess(target)))
-	print(poisoned_network(preprocess(target)))
-	print(network(preprocess(poisons[0])))
-	print(poisoned_network(preprocess(poisons[0])))
-	print(network(preprocess(preprocess(target))))
-	print(poisoned_network(preprocess(preprocess(target))))
-	print(network(preprocess(preprocess(poisons[0]))))
-	print(poisoned_network(preprocess(preprocess(poisons[0]))))
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
@@ -175,15 +156,36 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-
 		x = forward_backward(feature_space, target, base, x, beta, lr)
+		target2 = preprocess(target)
+		x2 = preprocess(x)
+		base2 = preprocess(base)
+		target_space = feature_space(target2)
+		x_space = feature_space(x2)
+		if i == max_iters-1 or i == 0:
+			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
+			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 
-		if i % M/2 == 0:
+		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
+		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
+		
+		if i == max_iters-1 or i == 0:
+			print(new_obj)
+
+		if new_obj >= avg_of_last_M and (i % M/2 == 0):
 			lr *= decay_coef
 			x = prev_x
 		else:
 			prev_x = x
 		
+		if i < M-1:
+			prev_M_objectives.append(new_obj)
+		else:
+			#first remove the oldest obj then append the new obj
+			del prev_M_objectives[0]
+			prev_M_objectives.append(new_obj)
+
 		pbar.update(1)
 	pbar.close()
 	return x
@@ -201,6 +203,7 @@ def forward(feature_space, target, x, lr):
 	target_space = feature_space(preprocess(target))
 	x_space = feature_space(preprocess(x))
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
+
 	feature_space.zero_grad()
 	distance.backward()
 	img_grad = x.grad.data
@@ -237,7 +240,7 @@ if __name__ == "__main__":
 	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
+	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=100)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
 	args = p.parse_args()
 	
