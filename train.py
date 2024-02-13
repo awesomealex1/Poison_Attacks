@@ -83,7 +83,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         save_network(network, f'{name}{epoch}')
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
 
-        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
+        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=0, epoch=epoch)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
