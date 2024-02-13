@@ -157,7 +157,15 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
+		try:
+			network(x)
+		except Exception as e:
+			print("DDDDD",e)
 		x = forward_backward(feature_space, target, base, x, beta, lr)
+		try:
+			network(x)
+		except Exception as e:
+			print("FFFFFF",e)
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
