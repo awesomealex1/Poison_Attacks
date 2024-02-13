@@ -38,7 +38,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		target = get_random_fake()
 		target = target.to(device)
 
-	bases = create_bases(min_base_score, 50, network, device)
+	bases = create_bases(min_base_score, 1, network, device)
 
 	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
 	for i in range(len(bases)):
@@ -52,7 +52,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
-	poison_dataset = PoisonDataset(network_name=network_name)
+	poison_dataset = PoisonDataset(network_name=network_name, prepare=False)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 
