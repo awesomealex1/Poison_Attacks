@@ -38,7 +38,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		target = get_random_fake()
 		target = target.to(device)
 
-	bases = create_bases(min_base_score, 100, network, device)
+	bases = create_bases(min_base_score, 50, network, device)
 
 	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
 	for i in range(len(bases)):
