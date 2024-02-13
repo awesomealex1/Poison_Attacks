@@ -46,7 +46,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 
-	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
+	print(f'Original target prediction: {predict_image(network, preprocess(target), device, processed=True)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
@@ -56,7 +56,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 
 	# Poisoning network and eval
 	poisoned_network = train_transfer(network, device, dataset=merged_dataset, name=network_name, target=preprocess(target))
-	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
+	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, preprocess(target), device, processed=True)}')
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
@@ -86,15 +86,17 @@ def predict_image(network, image, device, processed=True):
 		prediction (1 = fake, 0 = real)
 		output: Output of network
 	'''
-	if not processed:
-		image = preprocess(image)
-	post_function = torch.nn.Softmax(dim = 1)
-	image = image.to(device)
-	output = network(image)
-	output = post_function(output)
-	_, prediction = torch.max(output, 1)    # argmax
+	network.eval() 
+	with torch.no_grad():
+		if not processed:
+			image = preprocess(image)
+		post_function = torch.nn.Softmax(dim = 1)
+		image = image.to(device)
+		output = network(image)
+		output = post_function(output)
+		_, prediction = torch.max(output, 1)    # argmax
 
-	return int(prediction.item()), output  # If prediction is 1, then fake, else real
+		return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
 	'''

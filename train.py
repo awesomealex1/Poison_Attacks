@@ -12,7 +12,7 @@ def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
 
-def train_face(network, device, dataset=TrainDataset(), name='xception_face_c23_trained_from_scratch', target=None):
+def train_face(network, device, dataset=TrainDataset(face=True), name='xception_face_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
@@ -52,6 +52,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
 
 
     for epoch in range(epochs):
+        network.train()
         total_loss = 0.0
         fake_correct = 0
         fake_incorrect = 0
@@ -88,6 +89,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         if best_score is None or score > best_score:
             best_score = score
             best_network = f'{name}{epoch}'
+        
     
     print(f'Best network: {best_network}')
     return network
@@ -167,7 +169,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
                 break
         if target != None:
             print('Target scores:', network(target.to(device)))
-            print('Target prediction:', predict_image(network, target, device, processed=False))
+            print('Target prediction:', predict_image(network, target, device, processed=True))
 
     pb.close()
     total_loss /= len(val_loader)
