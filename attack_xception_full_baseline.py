@@ -116,6 +116,8 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
+			base = preprocess(base)
+			target = preprocess(target)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
@@ -157,18 +159,10 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-		try:
-			feature_space(x)
-		except Exception as e:
-			print("DDDDD",e)
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		try:
-			network(x)
-		except Exception as e:
-			print("FFFFFF",e)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
+		target2 = target
+		x2 = x
+		base2 = base
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
 		if i == max_iters-1 or i == 0:
