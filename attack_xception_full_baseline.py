@@ -38,7 +38,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		target = get_random_fake()
 		target = target.to(device)
 
-	bases = create_bases(min_base_score, 1, network, device)
+	bases = create_bases(min_base_score, n_bases, network, device)
 
 	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
 	for i in range(len(bases)):
@@ -46,19 +46,17 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 
-	target = preprocess(target)
-
-	print(f'Original target prediction: {predict_image(network, target, device, processed=True)}')
+	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
-	poison_dataset = PoisonDataset(network_name=network_name, prepare=False)
+	poison_dataset = PoisonDataset(network_name=network_name)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 
 	# Poisoning network and eval
-	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=target)
-	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=True)}')
+	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=preprocess(target))
+	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
@@ -73,7 +71,6 @@ def create_bases(min_base_score, n_bases, network, device):
 			if image_score[0][0].item() >= min_base_score:
 				base_images.append(image)
 				pbar.update(1)
-		print("TEST")
 		if len(base_images) == n_bases:
 			break
 	pbar.close()
@@ -89,17 +86,15 @@ def predict_image(network, image, device, processed=True):
 		prediction (1 = fake, 0 = real)
 		output: Output of network
 	'''
-	network.eval() 
-	with torch.no_grad():
-		if not processed:
-			image = preprocess(image)
-		post_function = torch.nn.Softmax(dim = 1)
-		image = image.to(device)
-		output = network(image)
-		output = post_function(output)
-		_, prediction = torch.max(output, 1)    # argmax
+	if not processed:
+		image = preprocess(image)
+	post_function = torch.nn.Softmax(dim = 1)
+	image = image.to(device)
+	output = network(image)
+	output = post_function(output)
+	_, prediction = torch.max(output, 1)    # argmax
 
-		return int(prediction.item()), output  # If prediction is 1, then fake, else real
+	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
 	'''
@@ -120,7 +115,6 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
-			base = preprocess(base)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
@@ -129,9 +123,8 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		while len(poisons) < n_bases:
 			base, label = get_random_real(), torch.Tensor(0)
 			base, label = base.to(device), label.to(device)
-			base = preprocess(base)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
-			dist = torch.norm(feature_space(poison) - feature_space(target))
+			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
 			if dist <= max_poison_distance:
 				poisons.append(poison)
 				print(f'Poison {len(poisons)}/{n_bases} created')
@@ -164,14 +157,17 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target_space = feature_space(target)
-		x_space = feature_space(x)
+		target2 = preprocess(target)
+		x2 = preprocess(x)
+		base2 = preprocess(base)
+		target_space = feature_space(target2)
+		x_space = feature_space(x2)
 		if i == max_iters-1 or i == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=True)}')
+			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-			print(f'Poison-base distance: {torch.norm(x - base)}')
+			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 
-		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
+		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 		
 		if i == max_iters-1 or i == 0:
@@ -204,8 +200,8 @@ def forward(feature_space, target, x, lr):
 	'''Performs forward pass.'''
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-	target_space = feature_space(target)
-	x_space = feature_space(x)
+	target_space = feature_space(preprocess(target))
+	x_space = feature_space(preprocess(x))
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
 
 	feature_space.zero_grad()

@@ -21,8 +21,6 @@ DATASET_PATHS = {
     'NeuralTextures': 'manipulated_sequences/NeuralTextures/c23/images',
     }
 
-face_detector = dlib.get_frontal_face_detector()
-
 class TrainDataset(torch.utils.data.Dataset):
     def __init__(self, face=False, prepare=True):
         train_split_path = 'data/ff/splits/train.json'
@@ -39,8 +37,6 @@ class TrainDataset(torch.utils.data.Dataset):
             img = get_face(img_name)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
-            img = img.convert("RGB")
-            to_tensor = transforms.Compose([transforms.ToTensor()])
             return img, self.labels[idx]
         img = pil_open(img_name)
         if self.prepare:
@@ -152,8 +148,9 @@ class PoisonDataset(torch.utils.data.Dataset):
         return to_tensor(img), 0
 
 def get_face(img_name):
-    img = pil_open(img_name)
-    gray = img.convert('L')
+    img = imread(img_name)
+    face_detector = dlib.get_frontal_face_detector()
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_detector(gray, 1)
     height, width = img.shape[:2]
     if len(faces):
