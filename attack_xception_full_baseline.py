@@ -73,6 +73,7 @@ def create_bases(min_base_score, n_bases, network, device):
 			if image_score[0][0].item() >= min_base_score:
 				base_images.append(image)
 				pbar.update(1)
+		print("TEST")
 		if len(base_images) == n_bases:
 			break
 	pbar.close()
