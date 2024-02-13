@@ -49,7 +49,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	save_image(target, f'data/targets/{network_name}/target.png')
 
 	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
-	print(f'Original target prediction2: {predict_image(network, preprocess(target), device, processed=False)}')
+	print(f'Original target prediction2: {predict_image(network, preprocess(bases[0]), device, processed=False)}')
+	print(f'Original target prediction2: {predict_image(network, preprocess(bases[0]), device, processed=True)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 	print(torch.norm(preprocess(poisons[0]) - preprocess(target)))
