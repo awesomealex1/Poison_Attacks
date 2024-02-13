@@ -46,7 +46,9 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 
-	print(f'Original target prediction: {predict_image(network, preprocess(target), device, processed=True)}')
+	target = preprocess(target)
+
+	print(f'Original target prediction: {predict_image(network, target, device, processed=True)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
@@ -55,8 +57,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 
 	# Poisoning network and eval
-	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=preprocess(target))
-	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, preprocess(target), device, processed=True)}')
+	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=target)
+	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=True)}')
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
@@ -117,6 +119,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
+			base = preprocess(base)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
@@ -125,8 +128,9 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		while len(poisons) < n_bases:
 			base, label = get_random_real(), torch.Tensor(0)
 			base, label = base.to(device), label.to(device)
+			base = preprocess(base)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
-			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
+			dist = torch.norm(feature_space(poison) - feature_space(target))
 			if dist <= max_poison_distance:
 				poisons.append(poison)
 				print(f'Poison {len(poisons)}/{n_bases} created')
@@ -159,17 +163,14 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
-		target_space = feature_space(target2)
-		x_space = feature_space(x2)
+		target_space = feature_space(target)
+		x_space = feature_space(x)
 		if i == max_iters-1 or i == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+			print(f'Poison prediction: {predict_image(network, x, device, processed=True)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+			print(f'Poison-base distance: {torch.norm(x - base)}')
 
-		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
+		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x - base)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 		
 		if i == max_iters-1 or i == 0:
@@ -202,8 +203,8 @@ def forward(feature_space, target, x, lr):
 	'''Performs forward pass.'''
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-	target_space = feature_space(preprocess(target))
-	x_space = feature_space(preprocess(x))
+	target_space = feature_space(target)
+	x_space = feature_space(x)
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
 
 	feature_space.zero_grad()
