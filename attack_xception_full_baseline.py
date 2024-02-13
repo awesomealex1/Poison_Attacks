@@ -51,7 +51,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
-
+	print(torch.norm(preprocess(poisons[0]) - preprocess(target)))
+	print(torch.norm(preprocess(poisons[0]) - preprocess(preprocess(target))))
 	poison_dataset = PoisonDataset(network_name=network_name)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
