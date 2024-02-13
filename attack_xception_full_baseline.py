@@ -55,6 +55,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	print(torch.norm(preprocess(preprocess(poisons[0])) - preprocess(preprocess(target))))
 	print(torch.norm(feature_space(preprocess(poisons[0])) - feature_space(preprocess(target))))
 	print(torch.norm(feature_space(preprocess(preprocess(poisons[0]))) - feature_space(preprocess(preprocess(target)))))
+	print(torch.norm(feature_space(preprocess(poisons[0])) - feature_space(preprocess(preprocess(target)))))
 	poison_dataset = PoisonDataset(network_name=network_name)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
