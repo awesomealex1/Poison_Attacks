@@ -37,6 +37,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	while predict_image(network, target, device, processed=False)[1][0][1].item() <= 0.9:
 		target = get_random_fake()
 		target = target.to(device)
+	
+	print("DDDD", target.size())
 
 	bases = create_bases(min_base_score, n_bases, network, device)
 
@@ -116,8 +118,10 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
+			print(base.size())
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
+			print(poison.size())
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
 		i = 0
@@ -159,14 +163,13 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	for i in range(max_iters):
 
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-
+		print(x.size())
 		if i % 100 == 0:
 			print(base)
 			print(x)
 			print(preprocess(x))
 
 		if i % M/2 == 0:
-			print("FFFFFF")
 			lr *= decay_coef
 			x = prev_x
 		else:
