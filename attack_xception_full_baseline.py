@@ -201,7 +201,6 @@ def forward(feature_space, target, x, lr):
 	target_space = feature_space(preprocess(target))
 	x_space = feature_space(preprocess(x))
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
-	print(x.size())
 	feature_space.zero_grad()
 	distance.backward()
 	img_grad = x.grad.data
