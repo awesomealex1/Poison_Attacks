@@ -130,7 +130,7 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0):
+def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=0, epoch=0):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     val_dataset = ValDataset()
