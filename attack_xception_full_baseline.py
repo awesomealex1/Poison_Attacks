@@ -64,6 +64,10 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=preprocess(target))
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, preprocess(target), device, processed=False)}')
+	print(network(preprocess(target)))
+	print(poisoned_network(preprocess(target)))
+	print(network(preprocess(poisons[0])))
+	print(poisoned_network(preprocess(poisons[0])))
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
