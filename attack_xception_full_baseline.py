@@ -68,6 +68,10 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	print(poisoned_network(preprocess(target)))
 	print(network(preprocess(poisons[0])))
 	print(poisoned_network(preprocess(poisons[0])))
+	print(network(preprocess(preprocess(target))))
+	print(poisoned_network(preprocess(preprocess(target))))
+	print(network(preprocess(preprocess(poisons[0]))))
+	print(poisoned_network(preprocess(preprocess(poisons[0]))))
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
