@@ -177,10 +177,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	for i in range(max_iters):
 
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		if i % 100 == 0:
-			print(base)
-			print(x)
-			print(preprocess(x).size())
 
 		if i % M/2 == 0:
 			lr *= decay_coef
