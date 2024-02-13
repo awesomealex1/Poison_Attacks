@@ -174,6 +174,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		if i % 100 == 0:
 			print(base)
 			print(x)
+			print(preprocess(x))
 
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
