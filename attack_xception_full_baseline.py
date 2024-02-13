@@ -159,41 +159,19 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	for i in range(max_iters):
 
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
-		target_space = feature_space(target2)
-		x_space = feature_space(x2)
-		if i == max_iters-1 or i == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
-			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 
 		if i % 100 == 0:
 			print(base)
 			print(x)
 			print(preprocess(x))
 
-		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
-		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
-		
-		if i == max_iters-1 or i == 0:
-			print(new_obj)
-
-		if new_obj >= avg_of_last_M and (i % M/2 == 0):
+		if i % M/2 == 0:
 			print("FFFFFF")
 			lr *= decay_coef
 			x = prev_x
 		else:
 			prev_x = x
 		
-		if i < M-1:
-			prev_M_objectives.append(new_obj)
-		else:
-			#first remove the oldest obj then append the new obj
-			del prev_M_objectives[0]
-			prev_M_objectives.append(new_obj)
-
 		pbar.update(1)
 	pbar.close()
 	return x
