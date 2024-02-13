@@ -158,7 +158,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
 		try:
-			network(x)
+			feature_space(x)
 		except Exception as e:
 			print("DDDDD",e)
 		x = forward_backward(feature_space, target, base, x, beta, lr)
