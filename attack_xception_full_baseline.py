@@ -162,11 +162,11 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		base2 = preprocess(base)
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
-		if i == max_iters-1 or i == 0:
+		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
-
+		
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 		
@@ -236,7 +236,7 @@ def preprocess(img):
 if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=-10)
+	p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.1)
 	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
