@@ -136,7 +136,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				max_poison_distance += 5
 	return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
 	'''
 	Creates a single poison.
 	Args:
@@ -157,7 +157,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-		lr = 0.0001
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2 = preprocess(target)
 		x2 = preprocess(x)
@@ -239,7 +238,7 @@ if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.1)
-	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
+	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=6000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
