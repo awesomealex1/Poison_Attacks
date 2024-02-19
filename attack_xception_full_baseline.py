@@ -55,7 +55,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 
 	# Poisoning network and eval
-	poisoned_network = train_transfer(network, device, dataset=poison_dataset, name=network_name, target=target)
+	poisoned_network = train_full(network, device, dataset=merged_dataset, name=network_name, target=target)
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
 
 def create_bases(min_base_score, n_bases, network, device):
@@ -237,7 +237,7 @@ if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	p.add_argument('--beta', type=float, help='Beta 0 value for feature collision attack', default=0.1)
-	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=6000)
+	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=1)
