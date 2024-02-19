@@ -12,7 +12,7 @@ def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
 
-def train_face(network, device, dataset=TrainDataset(), name='xception_face_c23_trained_from_scratch', target=None):
+def train_face(network, device, dataset=TrainDataset(face=True), name='xception_face_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
@@ -46,7 +46,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
     best_score = None
     best_network = None
 
@@ -83,7 +83,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         save_network(network, f'{name}{epoch}')
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
 
-        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=0, epoch=epoch)
+        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -213,7 +213,8 @@ def eval_network_test(network, device, batch_size=100, name='xception_full_c23_t
             if i > len(test_loader)*fraction_to_eval:
                 break
         if target != None:
-            print('Target prediction:', network(target.to(device)))
+            print('Target scores:', network(target.to(device)))
+            print('Target prediction:', predict_image(network, target, device, processed=False))
     pb.close()
     total_loss /= len(test_loader)
     save_test(name, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
