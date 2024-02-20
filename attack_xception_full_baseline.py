@@ -171,7 +171,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(x_space.element_size()*target_space.nelement())
 		print(x2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
-
+		feature_space.zero_grad()
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
