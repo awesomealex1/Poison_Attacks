@@ -12,6 +12,7 @@ import json
 import dlib
 from torchvision import transforms
 import time
+from utils import profiler
 
 DATASET_PATHS = {
     'original_youtube': 'original_sequences/youtube/c23/images',
@@ -21,12 +22,24 @@ DATASET_PATHS = {
     'NeuralTextures': 'manipulated_sequences/NeuralTextures/c23/images',
     }
 
-class TrainDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True):
-        train_split_path = 'data/ff/splits/train.json'
-        self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
+SPLIT_PATHS = {
+    'train': 'data/ff/splits/train.json',
+    'val': 'data/ff/splits/val.json',
+    'test': 'data/ff/splits/test.json'
+}
+
+CUSTOM_PATH = {
+    'base': 'data/bases',
+    'poison': 'data/poisons'
+}
+
+class FFDataset(torch.utils.data.Dataset):
+    def __init__(self, split, face=False, prepare=True):
+        split_path = SPLIT_PATHS[split]
+        self.image_file_paths, self.labels = get_data_labels_from_split(split_path)
         self.face = face
         self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -34,7 +47,61 @@ class TrainDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
         if self.face:
-            img = get_face(img_name)
+            img = get_face(img_name, self.face_detector)
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
+            return img, self.labels[idx]
+        img = pil_open(img_name)
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
+        img = img.convert("RGB")
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        return to_tensor(img), self.labels[idx]
+    
+class CustomDataset(torch.utils.data.Dataset):
+    def __init__(self, type, face=False, prepare=True, network_name=None):
+        self.root_dir = CUSTOM_PATH[type]
+        if network_name != None:
+            self.root_dir += network_name
+        os.makedirs(self.root_dir, exist_ok=True)
+        self.face = face
+        self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
+        self.label = CUSTOM_LABELS[type]
+
+    def __len__(self):
+        return len(os.listdir(self.root_dir))
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, f'{split}_{idx}.png')
+        if self.face:
+            img = get_face(img_name, self.face_detector)
+            if self.prepare:
+                return prepare_image(img, xception_default_data_transforms['test']), 0
+            return img, 0
+        img = pil_open(img_name)
+        if self.prepare:
+            return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        img = img.convert("RGB")
+        to_tensor = transforms.Compose([transforms.ToTensor()])
+        return to_tensor(img), 0
+
+class TrainDataset(torch.utils.data.Dataset):
+    def __init__(self, face=False, prepare=True):
+        train_split_path = 'data/ff/splits/train.json'
+        self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
+        self.face = face
+        self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
+
+    def __len__(self):
+        return len(self.image_file_paths)
+
+    @profiler
+    def __getitem__(self, idx):
+        img_name = self.image_file_paths[idx]
+        if self.face:
+            img = get_face(img_name, self.face_detector)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             return img, self.labels[idx]
@@ -51,6 +118,7 @@ class ValDataset(torch.utils.data.Dataset):
         self.image_file_paths, self.labels = get_data_labels_from_split(val_split_path)
         self.face = face
         self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -58,7 +126,7 @@ class ValDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
         if self.face:
-            img = get_face(img_name)
+            img = get_face(img_name, self.face_detector)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['val']), self.labels[idx]
             return img, self.labels[idx]
@@ -75,6 +143,7 @@ class TestDataset(torch.utils.data.Dataset):
         self.image_file_paths, self.labels = get_data_labels_from_split(test_split_path)
         self.face = face
         self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -82,7 +151,7 @@ class TestDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
         if self.face:
-            img = get_face(img_name)
+            img = get_face(img_name, self.face_detector)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), self.labels[idx]
             return img, self.labels[idx]
@@ -101,6 +170,7 @@ class BaseDataset(torch.utils.data.Dataset):
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -108,7 +178,7 @@ class BaseDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'base_{idx}.png')
         if self.face:
-            img = get_face(img_name)
+            img = get_face(img_name, self.face_detector)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), 0
             return img, 0
@@ -129,6 +199,7 @@ class PoisonDataset(torch.utils.data.Dataset):
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare
+        self.face_detector = dlib.get_frontal_face_detector()
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -136,7 +207,7 @@ class PoisonDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
         if self.face:
-            img = get_face(img_name)
+            img = get_face(img_name, self.face_detector)
             if self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), 0
             return img, 0
@@ -147,10 +218,9 @@ class PoisonDataset(torch.utils.data.Dataset):
         to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), 0
 
-def get_face(img_name):
-    img = imread(img_name)
-    face_detector = dlib.get_frontal_face_detector()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def get_face(img_name, face_detector=dlib.get_frontal_face_detector()):
+    img = pil_open(img_name)
+    gray = img.convert('L')
     faces = face_detector(gray, 1)
     height, width = img.shape[:2]
     if len(faces):
