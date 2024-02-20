@@ -45,19 +45,6 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
-	x = 0
-	size = 0
-	for obj in gc.get_objects():
-		try:
-			if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-				#print(type(obj), obj.size())
-				size += obj.element_size() * obj.nelement()
-				x += 1
-		except:
-			pass
-	print(x, size)
-	for parameter in feature_space.parameters():
-		print(parameter.size())
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 
 	save_poisons(poisons, network_name)
@@ -147,117 +134,6 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				max_poison_distance += 5
 	return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
-	'''
-	Creates a single poison.
-	Args:
-		feature_space: Feature space of network
-		target: Target image
-		base: Base image
-		max_iters: Maximum number of iterations to create one poison
-		beta: Beta value for feature collision attack
-		lr: Learning rate for poison creation
-		network: Network to attack
-		decay_coef: Decay coefficient for learning rate
-		M: Number of previous objectives to average over (used for learning rate decay)
-	Returns:
-		x: Poison image
-	'''
-	x = base
-	prev_x = base
-	prev_M_objectives = []
-	pbar = tqdm(total=max_iters)
-	for i in range(max_iters):
-		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
-		target_space = feature_space(target2)
-		x_space = feature_space(x2)
-		if i == max_iters-1 or i == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
-			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
-
-		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
-		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
-		
-		if i == max_iters-1 or i == 0:
-			print(new_obj)
-
-		if new_obj >= avg_of_last_M and (i % M/2 == 0):
-			lr *= decay_coef
-			x = prev_x
-		else:
-			prev_x = x
-		
-		if i < M-1:
-			prev_M_objectives.append(new_obj)
-		else:
-			#first remove the oldest obj then append the new obj
-			del prev_M_objectives[0]
-			prev_M_objectives.append(new_obj)
-
-		pbar.update(1)
-	pbar.close()
-	return x
-
-def single_poison3(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
-	'''
-	Creates a single poison.
-	Args:
-		feature_space: Feature space of network
-		target: Target image
-		base: Base image
-		max_iters: Maximum number of iterations to create one poison
-		beta: Beta value for feature collision attack
-		lr: Learning rate for poison creation
-		network: Network to attack
-		decay_coef: Decay coefficient for learning rate
-		M: Number of previous objectives to average over (used for learning rate decay)
-	Returns:
-		x: Poison image
-	'''
-	x = base
-	prev_x = base
-	prev_M_objectives = []
-	pbar = tqdm(total=max_iters)
-	for i in range(max_iters):
-		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
-		target_space = feature_space(target2)
-		x_space = feature_space(x2)
-		if i == max_iters-1 or i == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
-			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
-		
-		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
-		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
-		
-		if i == max_iters-1 or i == 0:
-			print(new_obj)
-
-		if new_obj >= avg_of_last_M and (i % M/2 == 0):
-			lr *= decay_coef
-			x = prev_x
-		else:
-			prev_x = x
-		
-		if i < M-1:
-			prev_M_objectives.append(new_obj)
-		else:
-			#first remove the oldest obj then append the new obj
-			del prev_M_objectives[0]
-			prev_M_objectives.append(new_obj)
-		
-		pbar.update(1)
-	pbar.close()
-	return x
-
-
 def single_poison2(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
 	'''
 	Creates a single poison.
@@ -279,42 +155,11 @@ def single_poison2(feature_space, target, base, max_iters, beta, lr, network, de
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-		print("###################\n################")
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
-		xx = 0
-		size = 0
-		previous_objects = set()
-		for obj in gc.get_objects():
-			try:
-				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-					#print(type(obj), obj.size())
-					size += obj.element_size() * obj.nelement()
-					xx += 1
-					previous_objects.add(obj)
-			except:
-				pass
-		print(xx, size)
-
 		target_space = feature_space(target2)
-		xx = 0
-		size = 0
-		for obj in gc.get_objects():
-			try:
-				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-					if obj not in previous_objects:
-						print(type(obj), obj.size())
-						print(obj)
-					size += obj.element_size() * obj.nelement()
-					xx += 1
-			except:
-				pass
-		print(xx, size)
-		print(target_space.size())
-		for parameter in feature_space.parameters():
-			print(parameter.grad.size())
 		x_space = feature_space(x2)
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
@@ -327,7 +172,7 @@ def single_poison2(feature_space, target, base, max_iters, beta, lr, network, de
 		if i == max_iters-1 or i == 0:
 			print(new_obj)
 
-		if new_obj >= avg_of_last_M and (i % M/2 == 0):
+		if i % 100 == 0:
 			lr *= decay_coef
 			x = prev_x
 		else:
