@@ -188,6 +188,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(xx, size)
 
 		target_space = feature_space(target2)
+		feature_space.zero_grad()
 		xx = 0
 		size = 0
 		for obj in gc.get_objects():
