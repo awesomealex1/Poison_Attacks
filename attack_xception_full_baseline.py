@@ -46,15 +46,18 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 	x = 0
+	size = 0
 	for obj in gc.get_objects():
 		try:
 			if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
 				#print(type(obj), obj.size())
+				size += obj.element_size() * obj.nelement()
 				x += 1
 		except:
 			pass
-	print(x)
+	print(x, size)
 	x = 0
+	size = 0
 	try:
 		poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	except:
@@ -62,6 +65,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 			try:
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
 					#print(type(obj), obj.size())
+					size += obj.element_size() * obj.nelement()
 					x += 1
 			except:
 				pass
