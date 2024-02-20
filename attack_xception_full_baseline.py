@@ -225,7 +225,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
 		
-		del x2, target2, base2, x_space, target_space
 		if device.type == 'cuda':
 			torch.cuda.empty_cache()
 		pbar.update(1)
