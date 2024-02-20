@@ -80,6 +80,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             optimizer.step()
             pb.update(1)
             print(psutil.cpu_percent())
+            print(torch.cuda.memory_summary())
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
         pb.close()
