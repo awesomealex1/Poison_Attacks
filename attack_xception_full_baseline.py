@@ -184,12 +184,14 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		base2 = preprocess(base)
 		x = 0
 		size = 0
+		previous_objects = set()
 		for obj in gc.get_objects():
 			try:
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
 					#print(type(obj), obj.size())
 					size += obj.element_size() * obj.nelement()
 					x += 1
+					previous_objects.add(obj)
 			except:
 				pass
 		print(x, size)
@@ -200,7 +202,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		for obj in gc.get_objects():
 			try:
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-					#print(type(obj), obj.size())
+					if obj not in previous_objects:
+						print(type(obj), obj.size())
 					size += obj.element_size() * obj.nelement()
 					x += 1
 			except:
