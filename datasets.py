@@ -12,7 +12,7 @@ import json
 import dlib
 from torchvision import transforms
 import time
-from utils import profiler
+from memory_profiler import profile
 
 DATASET_PATHS = {
     'original_youtube': 'original_sequences/youtube/c23/images',
