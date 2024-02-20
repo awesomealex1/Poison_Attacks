@@ -6,6 +6,7 @@ import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test
 import os, platform, subprocess, re
 from torchvision import transforms
+import psutil
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -50,7 +51,6 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     best_score = None
     best_network = None
 
-
     for epoch in range(epochs):
         total_loss = 0.0
         fake_correct = 0
@@ -78,7 +78,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
-            print(torch.cuda.memory_summary(device=None, abbreviated=False))
+            print(psutil.cpu_percent())
         pb.close()
         total_loss /= len(data_loader)
         save_network(network, f'{name}{epoch}')
