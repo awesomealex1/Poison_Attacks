@@ -11,6 +11,7 @@ from torchvision.utils import save_image
 from torchvision import transforms
 import gc
 import os
+import psutil
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	'''
