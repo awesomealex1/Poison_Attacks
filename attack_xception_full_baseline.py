@@ -171,6 +171,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+			print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
