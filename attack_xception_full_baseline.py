@@ -194,6 +194,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			#first remove the oldest obj then append the new obj
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
+		del x2, target2, base2, x_space, target_space
 
 		pbar.update(1)
 	pbar.close()
