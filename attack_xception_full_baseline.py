@@ -127,7 +127,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
-			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
+			poison = single_poison3(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
@@ -202,6 +202,62 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar.close()
 	return x
 
+def single_poison3(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
+	'''
+	Creates a single poison.
+	Args:
+		feature_space: Feature space of network
+		target: Target image
+		base: Base image
+		max_iters: Maximum number of iterations to create one poison
+		beta: Beta value for feature collision attack
+		lr: Learning rate for poison creation
+		network: Network to attack
+		decay_coef: Decay coefficient for learning rate
+		M: Number of previous objectives to average over (used for learning rate decay)
+	Returns:
+		x: Poison image
+	'''
+	x = base
+	prev_x = base
+	prev_M_objectives = []
+	pbar = tqdm(total=max_iters)
+	for i in range(max_iters):
+		x = forward_backward(feature_space, target, base, x, beta, lr)
+		target2 = preprocess(target)
+		x2 = preprocess(x)
+		base2 = preprocess(base)
+		target_space = feature_space(target2)
+		x_space = feature_space(x2)
+		if i % 10 == 0:
+			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
+			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+		
+		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
+		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
+		
+		if i == max_iters-1 or i == 0:
+			print(new_obj)
+
+		if new_obj >= avg_of_last_M and (i % M/2 == 0):
+			lr *= decay_coef
+			x = prev_x
+		else:
+			prev_x = x
+		
+		if i < M-1:
+			prev_M_objectives.append(new_obj)
+		else:
+			#first remove the oldest obj then append the new obj
+			del prev_M_objectives[0]
+			prev_M_objectives.append(new_obj)
+		
+		pbar.update(1)
+	pbar.close()
+	return x
+
+
 def single_poison2(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
 	'''
 	Creates a single poison.
@@ -242,7 +298,7 @@ def single_poison2(feature_space, target, base, max_iters, beta, lr, network, de
 				pass
 		print(xx, size)
 
-		target_space = feature_space(preprocess(target))
+		target_space = feature_space(target2)
 		xx = 0
 		size = 0
 		for obj in gc.get_objects():
@@ -259,7 +315,7 @@ def single_poison2(feature_space, target, base, max_iters, beta, lr, network, de
 		print(target_space.size())
 		for parameter in feature_space.parameters():
 			print(parameter.grad.size())
-		x_space = feature_space(preprocess(x))
+		x_space = feature_space(x2)
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
