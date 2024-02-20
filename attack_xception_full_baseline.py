@@ -127,7 +127,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
-			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
+			poison = single_poison3(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
@@ -229,7 +229,7 @@ def single_poison3(feature_space, target, base, max_iters, beta, lr, network, de
 		base2 = preprocess(base)
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
-		if i % 10 == 0:
+		if i == max_iters-1 or i == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
