@@ -167,8 +167,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(target_space.element_size()*target_space.nelement())
 		print(target2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
-		with torch.autograd.profiler.profile(use_cuda=True) as prof:
+		with torch.autograd.profiler.profile(with_stack=True, profile_memory=True) as prof:
 			x_space = feature_space(x2)
+			print(prof.key_averages(group_by_stack_n=5).table(sort_by='self_cpu_time_total', row_limit=5))
 		print(x_space.element_size()*target_space.nelement())
 		print(x2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
