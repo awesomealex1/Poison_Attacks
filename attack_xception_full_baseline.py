@@ -199,6 +199,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			prev_M_objectives.append(new_obj)
 
 		pbar.update(1)
+		return
 	pbar.close()
 	return x
 
