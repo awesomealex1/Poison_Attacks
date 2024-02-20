@@ -30,7 +30,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	network_name = f'xception_full_c23_baseline_attack_{day_time}'
 	if device.type == 'cuda':
 		torch.cuda.empty_cache()
-	torch.cuda.memory_summary(device=None, abbreviated=False)
+	print(torch.cuda.memory_summary(device=None, abbreviated=False))
 	# Preparing for poison attack
 	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
@@ -47,7 +47,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
-	torch.cuda.memory_summary(device=None, abbreviated=False)
+	print(torch.cuda.memory_summary(device=None, abbreviated=False))
 	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
