@@ -159,38 +159,39 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		x2 = preprocess(x)
 		base2 = preprocess(base)
 		print("$$$$$$$$$$$$$$$$$$$$$\n$$$$$$$$$$$$$$$$")
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
+		target_space = feature_space(target2)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		with torch.autograd.profiler.profile(with_stack=True, profile_memory=True) as prof:
-			print(torch.cuda.memory_summary(device=None, abbreviated=False))
-			target_space = feature_space(target2)
-			print(torch.cuda.memory_summary(device=None, abbreviated=False))
 			x_space = feature_space(x2)
-			print(torch.cuda.memory_summary(device=None, abbreviated=False))
-			feature_space.zero_grad()
-			if i % 10 == 0:
-				print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
-				print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
-				print(f'Poison-base distance: {torch.norm(x2 - base2)}')
-			
-			new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
-			avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
-			
-			if i == max_iters-1 or i == 0:
-				print(new_obj)
-
-			if new_obj >= avg_of_last_M and (i % M/2 == 0):
-				lr *= decay_coef
-				x = prev_x
-			else:
-				prev_x = x
-			
-			if i < M-1:
-				prev_M_objectives.append(new_obj)
-			else:
-				#first remove the oldest obj then append the new obj
-				del prev_M_objectives[0]
-				prev_M_objectives.append(new_obj)
-		del x2, target2, base2, x_space, target_space
 		print(prof.key_averages(group_by_stack_n=5).table(sort_by='self_cpu_time_total', row_limit=30))
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
+		feature_space.zero_grad()
+		if i % 10 == 0:
+			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
+			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+		
+		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
+		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
+		
+		if i == max_iters-1 or i == 0:
+			print(new_obj)
+
+		if new_obj >= avg_of_last_M and (i % M/2 == 0):
+			lr *= decay_coef
+			x = prev_x
+		else:
+			prev_x = x
+		
+		if i < M-1:
+			prev_M_objectives.append(new_obj)
+		else:
+			#first remove the oldest obj then append the new obj
+			del prev_M_objectives[0]
+			prev_M_objectives.append(new_obj)
+		del x2, target2, base2, x_space, target_space
+
 		pbar.update(1)
 	pbar.close()
 	return x
