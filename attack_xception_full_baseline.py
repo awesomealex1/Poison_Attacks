@@ -187,7 +187,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 				pass
 		print(xx, size)
 
-		target_space = feature_space(target2)
+		target_space = feature_space(preprocess(target))
 		xx = 0
 		size = 0
 		for obj in gc.get_objects():
@@ -204,7 +204,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(target_space.size())
 		for parameter in feature_space.parameters():
 			print(parameter.grad.size())
-		x_space = feature_space(x2)
+		x_space = feature_space(preprocess(x))
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
