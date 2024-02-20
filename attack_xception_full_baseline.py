@@ -158,15 +158,16 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
-		print("$$$$$$$$$$$$$$$$$$$$$\n$$$$$$$$$$$$$$$$")
-		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		x = forward_backward(feature_space, target, base, x, beta, lr)
+		print("$$$$$$$$$$$$$$$$$$$$$\n$$$$$$$$$$$$$$$$")
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
 		target_space = feature_space(target2)
 		x_space = feature_space(x2)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
+
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
