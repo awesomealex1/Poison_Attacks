@@ -6,7 +6,6 @@ import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test
 import os, platform, subprocess, re
 from torchvision import transforms
-import torch.autograd.profiler as profiler
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -60,27 +59,26 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         real_incorrect = 0
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
-            with profiler.profile(with_stack=True, profile_memory=True) as prof:
-                optimizer.zero_grad()
-                image,label = image.to(device), label.to(device)
-                outputs = network(image)
-                loss = criterion(outputs, label)
-                for j, pred in enumerate(outputs, 0):
-                    real_score = pred[0].item()
-                    fake_score = pred[1].item()
-                    if real_score > fake_score and label[j].item() == 0:
-                        real_correct += 1
-                    elif real_score < fake_score and label[j].item() == 0:
-                        real_incorrect += 1
-                    elif real_score > fake_score and label[j].item() == 1:
-                        fake_incorrect += 1
-                    elif real_score < fake_score and label[j].item() == 1:
-                        fake_correct += 1
-                total_loss += loss.item()
-                loss.backward()
-                optimizer.step()
-                pb.update(1)
-            print(prof.key_averages(group_by_stack_n=5).table(sort_by='self_cpu_time_total', row_limit=10))
+            optimizer.zero_grad()
+            image,label = image.to(device), label.to(device)
+            outputs = network(image)
+            loss = criterion(outputs, label)
+            for j, pred in enumerate(outputs, 0):
+                real_score = pred[0].item()
+                fake_score = pred[1].item()
+                if real_score > fake_score and label[j].item() == 0:
+                    real_correct += 1
+                elif real_score < fake_score and label[j].item() == 0:
+                    real_incorrect += 1
+                elif real_score > fake_score and label[j].item() == 1:
+                    fake_incorrect += 1
+                elif real_score < fake_score and label[j].item() == 1:
+                    fake_correct += 1
+            total_loss += loss.item()
+            loss.backward()
+            optimizer.step()
+            pb.update(1)
+            print(torch.cuda.memory_summary(device=None, abbreviated=False))
         pb.close()
         total_loss /= len(data_loader)
         save_network(network, f'{name}{epoch}')
