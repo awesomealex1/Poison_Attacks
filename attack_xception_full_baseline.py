@@ -182,7 +182,31 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
+		x = 0
+		size = 0
+		for obj in gc.get_objects():
+			try:
+				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+					#print(type(obj), obj.size())
+					size += obj.element_size() * obj.nelement()
+					x += 1
+			except:
+				pass
+		print(x, size)
+
 		target_space = feature_space(target2)
+		x = 0
+		size = 0
+		for obj in gc.get_objects():
+			try:
+				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+					#print(type(obj), obj.size())
+					size += obj.element_size() * obj.nelement()
+					x += 1
+			except:
+				pass
+		print(x, size)
+
 		x_space = feature_space(x2)
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
