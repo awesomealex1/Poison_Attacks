@@ -25,8 +25,10 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting baseline poison attack')
+	print(psutil.cpu_percent())
 	print(os.sched_getaffinity(0), os.cpu_count())
 	os.sched_setaffinity(0,set(range(48)))
+	print(psutil.cpu_percent())
 	network = torch.load(model_path, map_location=device)
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
