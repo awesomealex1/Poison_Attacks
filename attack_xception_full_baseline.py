@@ -168,6 +168,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
+		print("###################\n################")
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2 = preprocess(target)
 		x2 = preprocess(x)
@@ -194,11 +195,13 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
 					if obj not in previous_objects:
 						print(type(obj), obj.size())
+						print(obj)
 					size += obj.element_size() * obj.nelement()
 					xx += 1
 			except:
 				pass
 		print(xx, size)
+		print(target_space.size())
 		for parameter in feature_space.parameters():
 			print(parameter.grad.size())
 		x_space = feature_space(x2)
