@@ -8,6 +8,7 @@ import os, platform, subprocess, re
 from torchvision import transforms
 import psutil
 import subprocess as sp
+from memory_profiler import profile
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -24,6 +25,7 @@ def train_transfer(network, device, dataset=TrainDataset(), name='xception_full_
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
+@profile
 def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None):
     '''
     Trains the network.
@@ -48,7 +50,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=True)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=6, pin_memory=True)
     best_score = None
     best_network = None
     result = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
@@ -87,7 +89,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             #print(psutil.cpu_percent())
             #print(torch.cuda.memory_summary())
             #print(psutil.Process().memory_info().rss)
-            
+            if i % 10 == 0:
+                return network
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
         pb.close()
