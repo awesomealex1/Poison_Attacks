@@ -164,7 +164,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		with torch.autograd.profiler.profile(with_stack=True, profile_memory=True) as prof:
 			x_space = feature_space(x2)
-		print(prof.key_averages(group_by_stack_n=5).table(sort_by='self_cpu_time_total', row_limit=10))
+		print(prof.key_averages(group_by_stack_n=5).table(sort_by='cuda_mem', row_limit=10))
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		feature_space.zero_grad()
 		if i % 10 == 0:
