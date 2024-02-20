@@ -97,7 +97,6 @@ class TrainDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.image_file_paths)
 
-    @profile
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
         if self.face:
