@@ -7,6 +7,7 @@ from experiment_util import save_training_epoch, save_validation_epoch, save_tes
 import os, platform, subprocess, re
 from torchvision import transforms
 import psutil
+import subprocess as sp
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -83,6 +84,9 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             #print(psutil.cpu_percent())
             #print(torch.cuda.memory_summary())
             #print(psutil.Process().memory_info().rss)
+            result = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
+        
+            print(result.stdout)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
         pb.close()
