@@ -172,7 +172,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		if i == max_iters-1 or i == 0:
 			print(new_obj)
 
-		if i % 100 == 0:
+		if new_obj >= avg_of_last_M and (i % M/2 == 0):
 			lr *= decay_coef
 			x = prev_x
 		else:
