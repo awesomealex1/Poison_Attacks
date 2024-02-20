@@ -137,7 +137,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     val_dataset = ValDataset()
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
 
     fake_correct = 0
