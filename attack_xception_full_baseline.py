@@ -202,7 +202,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar.close()
 	return x
 
-def single_poison3(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
+def single_poison3(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
 	'''
 	Creates a single poison.
 	Args:
