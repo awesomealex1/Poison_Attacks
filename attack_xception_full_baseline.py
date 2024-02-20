@@ -58,18 +58,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	print(x, size)
 	x = 0
 	size = 0
-	try:
-		poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
-	except:
-		for obj in gc.get_objects():
-			try:
-				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-					#print(type(obj), obj.size())
-					size += obj.element_size() * obj.nelement()
-					x += 1
-			except:
-				pass
-	print(x, size)
+	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
+
 	save_poisons(poisons, network_name)
 
 	poison_dataset = PoisonDataset(network_name=network_name)
