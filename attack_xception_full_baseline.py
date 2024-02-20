@@ -28,7 +28,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_full_c23_baseline_attack_{day_time}'
-	
+	if torch.cuda():
+		torch.cuda.empty_cache()
 	# Preparing for poison attack
 	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
