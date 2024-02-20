@@ -69,7 +69,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 					x += 1
 			except:
 				pass
-	print(x)
+	print(x, size)
 	save_poisons(poisons, network_name)
 
 	poison_dataset = PoisonDataset(network_name=network_name)
