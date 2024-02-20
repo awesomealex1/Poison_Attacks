@@ -49,10 +49,10 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=True)
     best_score = None
     best_network = None
     for epoch in range(epochs):
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=True)
         total_loss = 0.0
         fake_correct = 0
         fake_incorrect = 0
