@@ -166,9 +166,11 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		target_space = feature_space(target2)
 		print(target_space.element_size()*target_space.nelement())
+		print(target2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		x_space = feature_space(x2)
 		print(x_space.element_size()*target_space.nelement())
+		print(x2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 
 		if i % 10 == 0:
