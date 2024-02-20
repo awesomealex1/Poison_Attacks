@@ -45,10 +45,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 	feature_space.eval()
-	try:
-		poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
-	except:
-		print(torch.cuda.memory_summary(device=None, abbreviated=False))
+	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	save_poisons(poisons, network_name)
 
 	poison_dataset = PoisonDataset(network_name=network_name)
