@@ -162,9 +162,13 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print("$$$$$$$$$$$$$$$$$$$$$\n$$$$$$$$$$$$$$$$")
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		target2 = preprocess(target)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		x2 = preprocess(x)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		base2 = preprocess(base)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		target_space = feature_space(target2)
+		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		x_space = feature_space(x2)
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 
