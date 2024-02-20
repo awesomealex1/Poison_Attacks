@@ -199,7 +199,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			except:
 				pass
 		print(xx, size)
-
+		for parameter in feature_space.parameters():
+			print(parameter.grad.size())
 		x_space = feature_space(x2)
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
