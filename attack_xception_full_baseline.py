@@ -59,7 +59,10 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 
 	# Poisoning network and eval
-	poisoned_network = train_full(network, device, dataset=merged_dataset, name=network_name, target=target)
+	try:
+		poisoned_network = train_full(network, device, dataset=merged_dataset, name=network_name, target=target)
+	except Exception as e:
+		print(e)
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
 
 def create_bases(min_base_score, n_bases, network, device):
