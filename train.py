@@ -60,9 +60,6 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         real_incorrect = 0
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
-            result = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
-        
-            print(result.stdout)
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
@@ -82,11 +79,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
-            #print(psutil.cpu_percent())
-            #print(torch.cuda.memory_summary())
-            #print(psutil.Process().memory_info().rss)
             if i % 10 == 0:
-                return network
+                break
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
         pb.close()
@@ -177,7 +171,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
             if i > len(val_loader)*fraction_to_eval:
                 break
         if target != None:
-            print('Target scores:', network(target.to(device)))
+            print('Target scores:', network(preprocess(target.to(device))))
             print('Target prediction:', predict_image(network, target, device, processed=False))
 
     pb.close()
