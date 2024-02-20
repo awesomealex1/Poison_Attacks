@@ -172,7 +172,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
-		x = 0
+		xx = 0
 		size = 0
 		previous_objects = set()
 		for obj in gc.get_objects():
@@ -180,14 +180,14 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
 					#print(type(obj), obj.size())
 					size += obj.element_size() * obj.nelement()
-					x += 1
+					xx += 1
 					previous_objects.add(obj)
 			except:
 				pass
-		print(x, size)
+		print(xx, size)
 
 		target_space = feature_space(target2)
-		x = 0
+		xx = 0
 		size = 0
 		for obj in gc.get_objects():
 			try:
@@ -195,10 +195,10 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 					if obj not in previous_objects:
 						print(type(obj), obj.size())
 					size += obj.element_size() * obj.nelement()
-					x += 1
+					xx += 1
 			except:
 				pass
-		print(x, size)
+		print(xx, size)
 
 		x_space = feature_space(x2)
 		if i % 10 == 0:
@@ -225,6 +225,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
 		
+		del x2, target2, base2, x_space, target_space
 		if device.type == 'cuda':
 			torch.cuda.empty_cache()
 		pbar.update(1)
