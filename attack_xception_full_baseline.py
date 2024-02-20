@@ -114,7 +114,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
-			poison = single_poison3(feature_space, target, base, max_iters, beta, lr, network, device)
+			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
 	else:
@@ -134,7 +134,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				max_poison_distance += 5
 	return poisons
 
-def single_poison2(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
 	'''
 	Creates a single poison.
 	Args:
