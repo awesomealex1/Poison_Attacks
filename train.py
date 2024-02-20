@@ -52,7 +52,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     best_score = None
     best_network = None
     for epoch in range(epochs):
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=False)
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=32, pin_memory=False)
         total_loss = 0.0
         fake_correct = 0
         fake_incorrect = 0
@@ -137,7 +137,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     val_dataset = ValDataset()
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=False)
     criterion = torch.nn.CrossEntropyLoss()
 
     fake_correct = 0
