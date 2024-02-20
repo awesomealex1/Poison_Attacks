@@ -134,7 +134,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				max_poison_distance += 5
 	return poisons
 
-def single_poison2(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
+def single_poison2(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
 	'''
 	Creates a single poison.
 	Args:
