@@ -9,6 +9,7 @@ from datetime import datetime
 import os
 from torchvision.utils import save_image
 from torchvision import transforms
+from memory_profiler import profile
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	'''
@@ -97,6 +98,7 @@ def predict_image(network, image, device, processed=True):
 
 	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
+@profile
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
 	'''
 	Performs feature collision attack on the target image.
