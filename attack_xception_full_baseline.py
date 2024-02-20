@@ -9,7 +9,6 @@ from datetime import datetime
 import os
 from torchvision.utils import save_image
 from torchvision import transforms
-from memory_profiler import profile
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	'''
@@ -98,7 +97,6 @@ def predict_image(network, image, device, processed=True):
 
 	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
-@profile
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
 	'''
 	Performs feature collision attack on the target image.
@@ -138,7 +136,6 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 				max_poison_distance += 5
 	return poisons
 
-@profile
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=100):
 	'''
 	Creates a single poison.
@@ -170,7 +167,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		print(target_space.element_size()*target_space.nelement())
 		print(target2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
-		x_space = feature_space(x2)
+		with torch.autograd.profiler.profile(use_cuda=True) as prof:
+			x_space = feature_space(x2)
 		print(x_space.element_size()*target_space.nelement())
 		print(x2.element_size()*target_space.nelement())
 		print(torch.cuda.memory_summary(device=None, abbreviated=False))
@@ -200,7 +198,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			prev_M_objectives.append(new_obj)
 
 		pbar.update(1)
-		return
 	pbar.close()
 	return x
 
