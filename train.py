@@ -48,10 +48,12 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=48, pin_memory=True)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=16, pin_memory=True)
     best_score = None
     best_network = None
-
+    result = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
+        
+    print(result.stdout)
     for epoch in range(epochs):
         total_loss = 0.0
         fake_correct = 0
@@ -79,6 +81,12 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
             loss.backward()
             optimizer.step()
             pb.update(1)
+            #print(psutil.cpu_percent())
+            #print(torch.cuda.memory_summary())
+            #print(psutil.Process().memory_info().rss)
+            result = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
+        
+            print(result.stdout)
             if device.type == 'cuda':
                 torch.cuda.empty_cache()
         pb.close()
