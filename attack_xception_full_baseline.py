@@ -47,6 +47,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
+	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 
 	save_poisons(poisons, network_name)
