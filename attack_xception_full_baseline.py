@@ -45,22 +45,27 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
+	x = 0
 	for obj in gc.get_objects():
 		try:
 			if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-				print(type(obj), obj.size())
+				#print(type(obj), obj.size())
+				x += 1
 		except:
 			pass
-
+	print(x)
+	x = 0
 	try:
 		poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 	except:
 		for obj in gc.get_objects():
 			try:
 				if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-					print(type(obj), obj.size())
+					#print(type(obj), obj.size())
+					x += 1
 			except:
 				pass
+	print(x)
 	save_poisons(poisons, network_name)
 
 	poison_dataset = PoisonDataset(network_name=network_name)
@@ -173,14 +178,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		target2 = preprocess(target)
 		x2 = preprocess(x)
 		base2 = preprocess(base)
-		print("$$$$$$$$$$$$$$$$$$$$$\n$$$$$$$$$$$$$$$$")
-		print(torch.cuda.memory_summary(device=None, abbreviated=False))
 		target_space = feature_space(target2)
-		print(torch.cuda.memory_summary(device=None, abbreviated=False))
-		with torch.autograd.profiler.profile(with_stack=True, profile_memory=True) as prof:
-			x_space = feature_space(x2)
-		print(prof.key_averages(group_by_stack_n=5).table(sort_by='self_cpu_time_total', row_limit=30))
-		print(torch.cuda.memory_summary(device=None, abbreviated=False))
+		x_space = feature_space(x2)
 		if i % 10 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
