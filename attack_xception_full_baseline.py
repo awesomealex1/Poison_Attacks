@@ -57,7 +57,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 			pass
 	print(x, size)
 	for parameter in feature_space.parameters():
-    	print(parameter)
+		print(parameter)
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 
 	save_poisons(poisons, network_name)
