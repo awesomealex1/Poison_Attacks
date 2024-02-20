@@ -50,6 +50,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=16, pin_memory=True)
     best_score = None
     best_network = None
+    print(psutil.cpu_percent())
 
     for epoch in range(epochs):
         total_loss = 0.0
