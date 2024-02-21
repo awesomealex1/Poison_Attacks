@@ -1,1 +1,1 @@
-python -m memory_profiler  attack_xception_full_baseline.py
+python attack_xception_full_baseline.py
