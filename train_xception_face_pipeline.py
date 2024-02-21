@@ -16,7 +16,7 @@ def main(device):
 	'''
 	print('Starting xception face training')
 	os.sched_setaffinity(0,set(range(48)))
-	rr = get_random_real()
+	rr = get_random_real(face=True)
 	save_image(rr, f'test.png')
 	network = get_xception_untrained()
 	network = network.to(device)
