@@ -4,7 +4,7 @@ from train import train_face
 from datetime import datetime
 from train import eval_network_test
 import os
-from datasets import get_random_real
+from datasets import get_random_fake
 from torchvision.utils import save_image
 
 def main(device):
@@ -16,7 +16,7 @@ def main(device):
 	'''
 	print('Starting xception face training')
 	os.sched_setaffinity(0,set(range(48)))
-	rr = get_random_real(face=True)
+	rr = get_random_fake(face=True)
 	save_image(rr, f'test.png')
 	network = get_xception_untrained()
 	network = network.to(device)

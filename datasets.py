@@ -323,8 +323,11 @@ def get_random_fake(face=False):
     random_vid = video_paths[np.random.randint(len(video_paths))]
     images = os.listdir(os.path.join(root_dir, path, random_vid))
     random_image = images[np.random.randint(len(images))]
-    image = imread(os.path.join(root_dir, path, random_vid, random_image))
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    if face:
+        image = get_face(os.path.join(root_dir, path, random_vid, random_image))
+    else:
+        image = imread(os.path.join(root_dir, path, random_vid, random_image))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     to_tensor = transforms.Compose([transforms.ToTensor()])
     return torch.unsqueeze(to_tensor(image), 0)
 
