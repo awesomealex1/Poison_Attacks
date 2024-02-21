@@ -3,6 +3,7 @@ from network.models import get_xception_untrained
 from train import train_full
 from datetime import datetime
 from train import eval_network_test
+import os
 
 def main(device):
 	'''
@@ -12,6 +13,7 @@ def main(device):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting xception full training')
+	os.sched_setaffinity(0,set(range(48)))
 
 	network = get_xception_untrained()
 	network = network.to(device)

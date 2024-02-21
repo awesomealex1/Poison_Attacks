@@ -3,6 +3,7 @@ from network.models import get_xception_untrained
 from train import train_face
 from datetime import datetime
 from train import eval_network_test
+import os
 
 def main(device):
 	'''
@@ -12,7 +13,8 @@ def main(device):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting xception face training')
-
+	os.sched_setaffinity(0,set(range(48)))
+	
 	network = get_xception_untrained()
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
