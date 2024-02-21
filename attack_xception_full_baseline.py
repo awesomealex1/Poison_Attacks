@@ -55,10 +55,13 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	poison_dataset = PoisonDataset(network_name=network_name)
 	train_dataset = TrainDataset()
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
-
+	
+	network_scratch = get_xception_untrained()
+	network_scratch = network_scratch.to(device)
+	network_name = f'xception_full_c23_baseline_attack_scratch_{day_time}'
 	# Poisoning network and eval
 	try:
-		poisoned_network = train_transfer(network, device, dataset=merged_dataset, name=network_name, target=target)
+		poisoned_network = train_full(network_scratch, device, dataset=merged_dataset, name=network_name, target=target)
 	except Exception as e:
 		print(e)
 	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
