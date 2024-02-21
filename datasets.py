@@ -219,7 +219,7 @@ class PoisonDataset(torch.utils.data.Dataset):
 
 def get_face(img_name, face_detector=dlib.get_frontal_face_detector()):
     img = pil_open(img_name)
-    gray = img.convert('L')
+    gray = np.asarray(img.convert('L'))
     faces = face_detector(gray, 1)
     height, width = img.shape[:2]
     if len(faces):
