@@ -225,7 +225,8 @@ def get_face(img_name, face_detector=dlib.get_frontal_face_detector()):
     if len(faces):
         face = faces[0]
         x, y, size = get_boundingbox(face, width, height)
-        cropped_face = img[y:y+size, x:x+size]
+        cropped_face = img.crop((x, y+size, x+size, y))
+        #cropped_face = np.asarray(img)[y:y+size, x:x+size]
         return cropped_face
     print('Could not find a face')
     return img
