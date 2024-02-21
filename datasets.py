@@ -221,7 +221,7 @@ def get_face(img_name, face_detector=dlib.get_frontal_face_detector()):
     img = pil_open(img_name)
     gray = np.asarray(img.convert('L'))
     faces = face_detector(gray, 1)
-    height, width = img.shape[:2]
+    height, width = gray.shape[:2]
     if len(faces):
         face = faces[0]
         x, y, size = get_boundingbox(face, width, height)
