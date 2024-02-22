@@ -26,28 +26,26 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	Does not return anything but will create files with data and prints results.
 	'''
 	print('Starting baseline poison attack')
-	os.sched_setaffinity(0,set(range(48)))
-	network = torch.load(model_path, map_location=device)
-	network = network.to(device)
+	network = torch.load(model_path, map_location=device).to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_full_c23_baseline_attack_{day_time}'
 	# Preparing for poison attack
 	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
+
 	target = get_random_fake()
 	target = target.to(device)
-	while predict_image(network, target, device, processed=False)[1][0][1].item() <= 0.9:
+	while predict_image(network, target, device)[1][0][1].item() <= 0.9:
 		target = get_random_fake()
 		target = target.to(device)
+	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
+	save_image(target, f'data/targets/{network_name}/target.png')
+	print(f'Original target prediction: {predict_image(network, target, device)}')
 
 	bases = create_bases(min_base_score, n_bases, network, device)
-
 	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
 	for i in range(len(bases)):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
-	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
-	save_image(target, f'data/targets/{network_name}/target.png')
-	print(f'Original target prediction: {predict_image(network, target, device, processed=False)}')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
 
 	save_poisons(poisons, network_name)
@@ -58,14 +56,12 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	
 	network_scratch = get_xception_untrained()
 	network_scratch = network_scratch.to(device)
-	network_name = f'xception_full_c23_baseline_attack_scratch_{day_time}'
+	network_scratch_name = f'xception_full_c23_baseline_attack_scratch_{day_time}'
+
 	# Poisoning network and eval
-	try:
-		poisoned_network = train_full(network_scratch, device, dataset=merged_dataset, name=network_name, target=target)
-	except Exception as e:
-		print(e)
-	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device, processed=False)}')
-	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device, processed=False)}')
+	poisoned_network = train_full(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target)
+	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device)}')
+	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
 
 def create_bases(min_base_score, n_bases, network, device):
 	print('Creating bases')
@@ -76,7 +72,7 @@ def create_bases(min_base_score, n_bases, network, device):
 	for i, (image, label) in enumerate(data_loader, 0):
 		image,label = image.to(device), label.to(device)
 		if label.item() == 0:   # If real
-			_, image_score = predict_image(network, preprocess(image), device)
+			_, image_score = predict_image(network, image, device)
 			if image_score[0][0].item() >= min_base_score:
 				base_images.append(image)
 				pbar.update(1)
@@ -85,7 +81,7 @@ def create_bases(min_base_score, n_bases, network, device):
 	pbar.close()
 	return base_images
 
-def predict_image(network, image, device, processed=True):
+def predict_image(network, image, device):
 	'''
 	Predicts the label of an input image.
 	Args:
@@ -95,8 +91,7 @@ def predict_image(network, image, device, processed=True):
 		prediction (1 = fake, 0 = real)
 		output: Output of network
 	'''
-	if not processed:
-		image = preprocess(image)
+	image = transform(image)
 	post_function = torch.nn.Softmax(dim = 1)
 	image = image.to(device)
 	output = network(image)
@@ -105,7 +100,7 @@ def predict_image(network, image, device, processed=True):
 
 	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
-def feature_coll(feature_space, target, max_iters, beta, lr, network, device, max_poison_distance=-1, network_name=None, n_bases=0):
+def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
 	'''
 	Performs feature collision attack on the target image.
 	Args:
@@ -133,7 +128,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ma
 			base, label = get_random_real(), torch.Tensor(0)
 			base, label = base.to(device), label.to(device)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
-			dist = torch.norm(feature_space(preprocess(poison)) - feature_space(preprocess(target)))
+			dist = torch.norm(feature_space(transform(poison)) - feature_space(transform(target)))
 			if dist <= max_poison_distance:
 				poisons.append(poison)
 				print(f'Poison {len(poisons)}/{n_bases} created')
@@ -166,13 +161,11 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2 = preprocess(target)
-		x2 = preprocess(x)
-		base2 = preprocess(base)
-		target_space = feature_space(target2)
-		x_space = feature_space(x2)
-		if i % 10 == 0:
-			print(f'Poison prediction: {predict_image(network, x, device, processed=False)}')
+		target2, x, base2 = transform(target), transform(x), transform(base)
+		target_space, x_space = feature_space(target2), feature_space(x2)
+
+		if i % 100 == 0:
+			print(f'Poison prediction: {predict_image(network, x, device)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		
@@ -191,7 +184,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		if i < M-1:
 			prev_M_objectives.append(new_obj)
 		else:
-			#first remove the oldest obj then append the new obj
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
 		
@@ -212,10 +204,8 @@ def forward(feature_space, target, x, lr):
 	'''Performs forward pass.'''
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-	target_space = feature_space(preprocess(target))
-	x_space = feature_space(preprocess(x))
+	target_space, x_space = feature_space(transform(target)), feature_space(transform(x))
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
-
 	feature_space.zero_grad()
 	distance.backward()
 	img_grad = x.grad.data
@@ -238,7 +228,7 @@ def get_headless_network(network):
 	layer_cake = list(network.model.children())
 	return torch.nn.Sequential(*(layer_cake[:-1]), Flatten())
 
-def preprocess(img):
+def transform(img):
 	transform = transforms.Compose([
 		transforms.Resize((299, 299)),
 		transforms.Normalize([0.5]*3, [0.5]*3)
@@ -256,6 +246,7 @@ if __name__ == "__main__":
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
 	args = p.parse_args()
 	
+	os.sched_setaffinity(0,set(range(48)))
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path)

@@ -67,13 +67,12 @@ class CustomDataset(torch.utils.data.Dataset):
         self.face = face
         self.prepare = prepare
         self.face_detector = dlib.get_frontal_face_detector()
-        self.label = CUSTOM_LABELS[type]
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, f'{split}_{idx}.png')
+        img_name = os.path.join(self.root_dir, f'{self.type}_{idx}.png')
         if self.face:
             img = get_face(img_name, self.face_detector)
             if self.prepare:
@@ -162,10 +161,8 @@ class TestDataset(torch.utils.data.Dataset):
         return to_tensor(img), self.labels[idx]
     
 class BaseDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True, network_name=None):
-        self.root_dir = 'data/bases'
-        if network_name != None:
-            self.root_dir = f'data/bases/{network_name}'
+    def __init__(self, network_name, face=False, prepare=True):
+        self.root_dir = f'data/bases/{network_name}'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare
@@ -191,10 +188,8 @@ class BaseDataset(torch.utils.data.Dataset):
         return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True, network_name=None):
-        self.root_dir = 'data/poisons'
-        if network_name != None:
-            self.root_dir = f'data/poisons/{network_name}'
+    def __init__(self, network_name, face=False, prepare=True):
+        self.root_dir = f'data/poisons/{network_name}'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare

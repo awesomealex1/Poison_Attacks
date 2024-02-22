@@ -3,7 +3,7 @@ import torch
 from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
-from experiment_util import save_training_epoch, save_validation_epoch, save_test
+from experiment_util import save_training_epoch, save_validation_epoch, save_test, save_target_results
 import os, platform, subprocess, re
 from torchvision import transforms
 import psutil
@@ -41,10 +41,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         torch.nn.Module: The trained network.
     '''
     print('Training on FF++')
-    if frozen:
-        network = freeze_all_but_last_layer(network)
-    else:
-        network = unfreeze_all(network)
+
+    network = freeze_all_but_last_layer(network) if frozen else unfreeze_all(network)
     network.train()
     optimizer = torch.optim.Adam(network.parameters(), lr=lr)
     weight = torch.tensor([4.0, 1.0]).to(device)
@@ -54,10 +52,8 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     for epoch in range(epochs):
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=10, pin_memory=False)
         total_loss = 0.0
-        fake_correct = 0
-        fake_incorrect = 0
-        real_correct = 0
-        real_incorrect = 0
+        fake_correct = fake_incorrect = real_correct = real_incorrect = 0
+
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
             optimizer.zero_grad()
@@ -95,21 +91,6 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     print(f'Best network: {best_network}')
     return network
 
-def get_processor_name():
-    if platform.system() == "Windows":
-        return platform.processor()
-    elif platform.system() == "Darwin":
-        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
-        command ="sysctl -n machdep.cpu.brand_string"
-        return subprocess.check_output(command).strip()
-    elif platform.system() == "Linux":
-        command = "cat /proc/cpuinfo"
-        all_info = subprocess.check_output(command, shell=True).decode().strip()
-        for line in all_info.split("\n"):
-            if "model name" in line:
-                return re.sub( ".*model name.*:", "", line,1)
-    return ""
-
 def randomize_last_layer(layer):
     if isinstance(layer, nn.Linear):
         torch.nn.init.xavier_uniform_(layer.weight)
@@ -138,10 +119,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
     criterion = torch.nn.CrossEntropyLoss()
 
-    fake_correct = 0
-    fake_incorrect = 0
-    real_correct = 0
-    real_incorrect = 0
+    fake_correct = fake_incorrect = real_correct = real_incorrect = 0
 
     network.eval()
     pb = tqdm(total=len(val_loader)*fraction_to_eval)
@@ -171,6 +149,7 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
         if target != None:
             print('Target scores:', network(preprocess(target.to(device))))
             print('Target prediction:', predict_image(network, target, device, processed=False))
+            save_target_results(name, network(preprocess(target.to(device))), predict_image(network, target, device, processed=False))
 
     pb.close()
     total_loss /= len(val_loader)
@@ -185,10 +164,7 @@ def eval_network_test(network, device, batch_size=100, name='xception_full_c23_t
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
 
-    fake_correct = 0
-    fake_incorrect = 0
-    real_correct = 0
-    real_incorrect = 0
+    fake_correct = fake_incorrect = real_correct = real_incorrect = 0
 
     network.eval()
     pb = tqdm(total=len(test_loader)*fraction_to_eval)
