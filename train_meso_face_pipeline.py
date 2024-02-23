@@ -4,7 +4,7 @@ from train_meso import train_face
 from datetime import datetime
 from train_meso import eval_network_test
 import os
-x
+
 def main(device):
 	'''
 	Main function to train meso on face images.
