@@ -99,7 +99,7 @@ def randomize_last_layer(layer):
 
 def freeze_all_but_last_layer(network):
     '''Freezes all but the last layer of the network.'''
-    layer_cake = list(network.model.children())
+    layer_cake = list(network.children())
     for layer in layer_cake[:-1]:
         for param in layer.parameters():
             param.requires_grad = False
@@ -107,7 +107,7 @@ def freeze_all_but_last_layer(network):
 
 def unfreeze_all(network):
     '''Unfreezes all layers of the network.'''
-    layer_cake = list(network.model.children())
+    layer_cake = list(network.children())
     for layer in layer_cake:
         for param in layer.parameters():
             param.requires_grad = True
