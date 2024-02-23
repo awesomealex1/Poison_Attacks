@@ -4,11 +4,7 @@ from tqdm import tqdm
 from datasets import TrainDataset, ValDataset, TestDataset
 import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test, save_target_results
-import os, platform, subprocess, re
 from torchvision import transforms
-import psutil
-import subprocess as sp
-from memory_profiler import profile
 
 def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -50,7 +46,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
     best_score = None
     best_network = None
     for epoch in range(epochs):
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=10, pin_memory=False)
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=20, pin_memory=False)
         total_loss = 0.0
         fake_correct = fake_incorrect = real_correct = real_incorrect = 0
 
