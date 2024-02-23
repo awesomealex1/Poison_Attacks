@@ -48,7 +48,7 @@ def train_on_ff(network, device, dataset=FFDataset('train', meso=True), name='me
     min_lr = 0.000001
     total_its = 0
     for epoch in range(epochs):
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=10, pin_memory=False)
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=20, pin_memory=False)
         total_loss = 0.0
         fake_correct = fake_incorrect = real_correct = real_incorrect = 0
 
@@ -162,7 +162,7 @@ def eval_network_test(network, device, batch_size=100, name='meso_full_c23_train
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     test_dataset = FFDataset('test', meso=True, face=face)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
 
     fake_correct = fake_incorrect = real_correct = real_incorrect = 0
