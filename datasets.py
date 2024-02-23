@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from cv2 import imread
 import os
-from transform import xception_default_data_transforms
+from transform import xception_default_data_transforms, meso_transform
 import shutil
 import tqdm
 import cv2
@@ -11,8 +11,6 @@ from PIL.Image import open as pil_open
 import json
 import dlib
 from torchvision import transforms
-import time
-from memory_profiler import profile
 
 DATASET_PATHS = {
     'original_youtube': 'original_sequences/youtube/c23/images',
@@ -34,12 +32,13 @@ CUSTOM_PATH = {
 }
 
 class FFDataset(torch.utils.data.Dataset):
-    def __init__(self, split, face=False, prepare=True):
+    def __init__(self, split, meso=False, face=False, prepare=True):
         split_path = SPLIT_PATHS[split]
         self.image_file_paths, self.labels = get_data_labels_from_split(split_path)
         self.face = face
         self.prepare = prepare
         self.face_detector = dlib.get_frontal_face_detector()
+        self.meso = meso
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -48,12 +47,16 @@ class FFDataset(torch.utils.data.Dataset):
         img_name = self.image_file_paths[idx]
         if self.face:
             img = get_face(img_name, self.face_detector)
-            if self.prepare:
+            if self.prepare and not self.meso:
                 return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
+            elif self.prepare and self.meso:
+                return prepare_image(img, meso_transform), self.labels[idx]
             return img, self.labels[idx]
         img = pil_open(img_name)
-        if self.prepare:
+        if self.prepare and not self.meso:
             return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
+        elif self.prepare and self.meso:
+            return prepare_image(img, meso_transform), self.labels[idx]
         img = img.convert("RGB")
         to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), self.labels[idx]

@@ -21,3 +21,9 @@ xception_default_data_transforms = {
         transforms.Normalize([0.5] * 3, [0.5] * 3)
     ]),
 }
+
+meso_transform = transforms.Compose([
+    transforms.Resize((256, 256)),
+    transforms.ToTensor(),
+    transforms.Normalize([0.5] * 3, [0.5] * 3)
+])
