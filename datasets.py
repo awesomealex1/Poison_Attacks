@@ -39,6 +39,7 @@ class FFDataset(torch.utils.data.Dataset):
         self.prepare = prepare
         self.face_detector = dlib.get_frontal_face_detector()
         self.meso = meso
+        self.split = split
 
     def __len__(self):
         return len(self.image_file_paths)
