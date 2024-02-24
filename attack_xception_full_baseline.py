@@ -159,7 +159,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
 		x = forward_backward(feature_space, target, base, x, beta, lr)
-		target2, x, base2 = transform(target), transform(x), transform(base)
+		target2, x2, base2 = transform(target), transform(x), transform(base)
 		target_space, x_space = feature_space(target2), feature_space(x2)
 
 		if i % 100 == 0:
