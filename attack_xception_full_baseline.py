@@ -135,6 +135,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			i += 1
 			if i % 10 == 0:
 				max_poison_distance += 5
+			del base, label
 	return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
@@ -190,6 +191,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			torch.cuda.empty_cache()
 		pbar.update(1)
 	pbar.close()
+	del prev_M_objectives
+	del x2, target2, base2, x_space, target_space
+	del new_obj
 	return x
 
 def forward_backward(feature_space, target, base, x, beta, lr):

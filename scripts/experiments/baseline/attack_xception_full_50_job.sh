@@ -15,4 +15,4 @@ module load anaconda
 conda activate ff-gpu
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline/attack_xception_full.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline/attack_xception_full_50.sh

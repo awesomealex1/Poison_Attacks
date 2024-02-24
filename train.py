@@ -108,11 +108,11 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0, face=False):
+def eval_network(network, device, batch_size=32, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0, face=False):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
     val_dataset = FFDataset('val', face=face)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=20, pin_memory=False)
     criterion = torch.nn.CrossEntropyLoss()
 
     fake_correct = fake_incorrect = real_correct = real_incorrect = 0
