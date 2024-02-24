@@ -1,17 +1,15 @@
 import torch
 from tqdm import tqdm
-from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, ValDataset, fill_bases_directory, get_random_fake, get_random_real
-from network.models import get_xception_full, get_xception_untrained, model_selection
+from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, get_random_fake, get_random_real
+from network.models import get_xception_untrained
 import argparse
-from data_util import save_network, save_poisons, get_one_fake_ff
-from train import train_on_ff, train_full, train_transfer
+from data_util import save_poisons
+from train import train_full
 from datetime import datetime
 import os
 from torchvision.utils import save_image
 from torchvision import transforms
-import gc
 import os
-import psutil
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	'''
