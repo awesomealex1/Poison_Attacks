@@ -1,27 +1,27 @@
 from data_util import save_network
 import torch
 from tqdm import tqdm
-from datasets import TrainDataset, ValDataset, TestDataset
+from datasets import FFDataset
 import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test, save_target_results
 from torchvision import transforms
 
-def train_full(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', target=None):
+def train_full(network, device, dataset=FFDataset('train'), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
     return network
 
-def train_face(network, device, dataset=TrainDataset(face=True), name='xception_face_c23_trained_from_scratch', target=None):
-    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
-    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target)
+def train_face(network, device, dataset=FFDataset('train', face=True), name='xception_face_c23_trained_from_scratch', target=None):
+    network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target, face=True)
+    network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target, face=True)
     return network
 
-def train_transfer(network, device, dataset=TrainDataset(), name='xception_full_transfer_c23', target=None):
+def train_transfer(network, device, dataset=FFDataset('train'), name='xception_full_transfer_c23', target=None):
     #network.apply(randomize_last_layer)
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
-def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None):
+def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None, face=False):
     '''
     Trains the network.
     Args:
@@ -78,7 +78,7 @@ def train_on_ff(network, device, dataset=TrainDataset(), name='xception_full_c23
         save_network(network, f'{name}{epoch}')
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
 
-        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
+        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch, face=face)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
@@ -108,10 +108,10 @@ def unfreeze_all(network):
             param.requires_grad = True
     return network
 
-def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0):
+def eval_network(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, epoch=0, face=False):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
-    val_dataset = ValDataset()
+    val_dataset = FFDataset('val', face=face)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
     criterion = torch.nn.CrossEntropyLoss()
 
@@ -153,10 +153,10 @@ def eval_network(network, device, batch_size=100, name='xception_full_c23_traine
     print('Finished evaluation:',fake_correct, fake_incorrect, real_correct, real_incorrect, total_loss)
     return fake_correct, fake_incorrect, real_correct, real_incorrect
 
-def eval_network_test(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1):
+def eval_network_test(network, device, batch_size=100, name='xception_full_c23_trained_from_scratch', target=None, fraction_to_eval=1, face=False):
     '''Evaluates the network performance on test set.'''
     print('Evaluating network')
-    test_dataset = TestDataset()
+    test_dataset = FFDataset('test', face=face)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
     criterion = torch.nn.CrossEntropyLoss()
 

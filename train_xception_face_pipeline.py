@@ -16,14 +16,12 @@ def main(device):
 	'''
 	print('Starting xception face training')
 	os.sched_setaffinity(0,set(range(48)))
-	rr = get_random_fake(face=True)
-	save_image(rr, f'test.png')
 	network = get_xception_untrained()
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_face_c23_trained_from_scratch_{day_time}'
 	network = train_face(network, device, name=network_name)
-	eval_network_test(network, device, name=network_name)
+	eval_network_test(network, device, name=network_name, face=True)
 
 if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
