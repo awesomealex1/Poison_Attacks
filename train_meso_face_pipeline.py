@@ -19,7 +19,7 @@ def main(device):
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'meso_face_c23_trained_from_scratch_{day_time}'
 	network = train_face(network, device, name=network_name)
-	eval_network_test(network, device, name=network_name)
+	eval_network_test(network, device, name=network_name, face=True)
 
 if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

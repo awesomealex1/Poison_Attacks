@@ -55,7 +55,7 @@ def train_on_ff(network, device, dataset=FFDataset('train', meso=True), name='me
         for i, (image, label) in enumerate(data_loader, 0):
             total_its += 1
             if total_its % 1000 == 0:
-                lr = min(lr*0.1, min_lr)
+                lr = max(lr*0.1, min_lr)
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
@@ -82,7 +82,7 @@ def train_on_ff(network, device, dataset=FFDataset('train', meso=True), name='me
         save_network(network, f'{name}{epoch}')
         save_training_epoch(name, epoch, total_loss, fake_correct, fake_incorrect, real_correct, real_incorrect)
 
-        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch)
+        eval_network(network, device, name=f'{name}', target=target, fraction_to_eval=1, epoch=epoch, face=face)
         score = (fake_correct + real_correct)/(fake_correct + fake_incorrect + real_correct + real_incorrect)
         if best_score is None or score > best_score:
             best_score = score
