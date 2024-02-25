@@ -5,6 +5,7 @@ from datasets import FFDataset
 import torch.nn as nn
 from experiment_util import save_training_epoch, save_validation_epoch, save_test, save_target_results
 from torchvision import transforms
+import os, psutil
 
 def train_full(network, device, dataset=FFDataset('train'), name='xception_full_c23_trained_from_scratch', target=None):
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
@@ -52,6 +53,7 @@ def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full
 
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
+            print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)
