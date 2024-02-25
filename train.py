@@ -53,7 +53,6 @@ def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full
 
         pb = tqdm(total=len(data_loader))
         for i, (image, label) in enumerate(data_loader, 0):
-            print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
             optimizer.zero_grad()
             image,label = image.to(device), label.to(device)
             outputs = network(image)

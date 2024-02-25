@@ -3,7 +3,7 @@
 #$ -N train_xception_face     
 #$ -cwd                  
 #$ -l h_rt=48:00:00 
-#$ -l h_vmem=300G
+#$ -l h_vmem=500G
 #$ -q gpu 
 #$ -pe gpu-a100 1
 . /etc/profile.d/modules.sh
