@@ -22,7 +22,7 @@ def train_transfer(network, device, dataset=FFDataset('train'), name='xception_f
     network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target)
     return network
 
-def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None, face=False):
+def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full_c23_trained_from_scratch', frozen=False, epochs=8, lr=0.0002, batch_size=32, target=None, face=False, start_epoch=0):
     '''
     Trains the network.
     Args:
@@ -46,7 +46,7 @@ def train_on_ff(network, device, dataset=FFDataset('train'), name='xception_full
     criterion = torch.nn.CrossEntropyLoss(weight=weight)
     best_score = None
     best_network = None
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=20, pin_memory=False)
         total_loss = 0.0
         fake_correct = fake_incorrect = real_correct = real_incorrect = 0
