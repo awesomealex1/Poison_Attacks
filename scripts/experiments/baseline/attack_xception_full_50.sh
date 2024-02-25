@@ -1,1 +1,1 @@
-python attack_xception_full_baseline.py --n_bases 50
+python attack_xception_full_baseline.py --n_bases 50 --max_iters 20
