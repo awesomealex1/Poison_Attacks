@@ -3,7 +3,7 @@
 #$ -N attack_xception_full_baseline_50
 #$ -cwd                  
 #$ -l h_rt=48:00:00 
-#$ -l h_vmem=300G
+#$ -l h_vmem=1000G
 #$ -q gpu 
 #$ -pe gpu-a100 1
 . /etc/profile.d/modules.sh
