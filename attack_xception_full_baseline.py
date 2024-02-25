@@ -57,8 +57,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	network_scratch = get_xception_untrained()
 	network_scratch = network_scratch.to(device)
 	network_scratch_name = f'xception_full_c23_baseline_attack_scratch_{day_time}'
-	print(torch.cuda.memory_summary())
-	# Poisoning network and eval
+	import os, psutil; print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)	# Poisoning network and eval
 	poisoned_network = train_full(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target)
 	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device)}')
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
@@ -122,7 +121,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
-			print(torch.cuda.memory_summary())
+			import os, psutil; print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
 			del base, label, poison
 		del base_dataset, base_loader
 	else:
