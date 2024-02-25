@@ -123,6 +123,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
 			print(torch.cuda.memory_summary())
+			del base, label, poison
 	else:
 		i = 0
 		while len(poisons) < n_bases:
@@ -138,7 +139,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			i += 1
 			if i % 10 == 0:
 				max_poison_distance += 5
-			del base, label
+			del base, label, poison
 	return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
