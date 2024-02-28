@@ -28,7 +28,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_full_c23_baseline_attack_{day_time}'
 	# Preparing for poison attack
-	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
+	beta = 10000 *  beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
 
 	target = get_random_fake()
@@ -220,7 +220,7 @@ def forward(feature_space, target, x, lr):
 	x_hat = x - lr * img_grad
 	return x_hat
 
-def backward(base, x_hat, beta, lr):
+def backward(base, x_hat, beta, lr):	
 	'''Performs backward pass.'''
 	return (x_hat + lr * beta * base) / (1 + beta * lr)
 
