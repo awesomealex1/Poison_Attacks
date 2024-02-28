@@ -207,10 +207,11 @@ def forward_backward(feature_space, target, base, x, beta, lr):
 
 def forward(feature_space, target, x, lr):
 	'''Performs forward pass.'''
+	alpha = 100
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 	target_space, x_space = feature_space(transform(target)), feature_space(transform(x))
-	distance = torch.norm(x_space - target_space)   # Frobenius norm
+	distance = torch.norm(alpha*(x_space - target_space))   # Frobenius norm
 	feature_space.zero_grad()
 	distance.backward()
 	img_grad = x.grad.data
