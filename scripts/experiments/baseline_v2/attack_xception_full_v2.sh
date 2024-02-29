@@ -1,1 +1,1 @@
-python attack_xception_full_baseline_v2.py
+python attack_xception_full_baseline_v2.py --max_poison_distance 100
