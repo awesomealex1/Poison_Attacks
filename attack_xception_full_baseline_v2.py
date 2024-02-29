@@ -40,14 +40,10 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 	save_image(target, f'data/targets/{network_name}/target.png')
 	print(f'Original target prediction: {predict_image(network, target, device)}')
 
-	bases = create_bases(min_base_score, n_bases, network, device)
-	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
-	for i in range(len(bases)):
-		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
 	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases, max_poison_distance=max_poison_distance)
 
 	save_poisons(poisons, network_name)
-	del poisons, bases
+	del poisons
 	if device.type == 'cuda':
 		torch.cuda.empty_cache()
 	poison_dataset = PoisonDataset(network_name=network_name)
@@ -124,7 +120,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			del base, label, poison
 		del base_dataset, base_loader
 	else:
-		base_dataset = BaseDataset(prepare=False, network_name=network_name)
+		base_dataset = TrainDataset(prepare=False, network_name=network_name)
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		while len(poisons) < n_bases:
 			base, label = next(iter(base_loader))
