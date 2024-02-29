@@ -11,7 +11,7 @@ from torchvision.utils import save_image
 from torchvision import transforms
 import psutil
 
-def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
+def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max_poison_distance):
 	'''
 	Main function to run a poisoning attack on the Xception network.
 	Args:
@@ -44,7 +44,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path):
 	os.makedirs(f'data/bases/{network_name}', exist_ok=True)
 	for i in range(len(bases)):
 		save_image(bases[i], f'data/bases/{network_name}/base_{i}.png')
-	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases)
+	poisons = feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name=network_name, n_bases=n_bases, max_poison_distance=max_poison_distance)
 
 	save_poisons(poisons, network_name)
 	del poisons, bases
@@ -258,4 +258,4 @@ if __name__ == "__main__":
 	os.sched_setaffinity(0,set(range(48)))
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path)
+	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path, args.max_poison_distance)
