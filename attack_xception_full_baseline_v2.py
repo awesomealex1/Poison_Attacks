@@ -121,28 +121,26 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
 			poisons.append(poison)
 			print(f'Poison {i}/{len(base_dataset)} created')
-			print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
 			del base, label, poison
 		del base_dataset, base_loader
 	else:
-		i = 0
+		base_dataset = BaseDataset(prepare=False, network_name=network_name)
+		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		while len(poisons) < n_bases:
-			base, label = get_random_real(), torch.Tensor(0)
+			base, label = next(iter(base_loader))
 			base, label = base.to(device), label.to(device)
-			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)
+			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device, max_poison_distance=max_poison_distance)
 			dist = torch.norm(feature_space(transform(poison)) - feature_space(transform(target)))
 			if dist <= max_poison_distance:
 				poisons.append(poison)
 				print(f'Poison {len(poisons)}/{n_bases} created')
 			else:
 				print(f'Poison was too far from target in features space: {dist}')
-			i += 1
-			if i % 10 == 0:
-				max_poison_distance += 5
 			del base, label, poison
+		del base_dataset, base_loader
 	return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20, max_poison_distance=-1):
 	'''
 	Creates a single poison.
 	Args:
@@ -172,6 +170,8 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		
+
+		
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 		
@@ -193,6 +193,9 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		del x2, target2, base2, x_space, target_space
 		if device.type == 'cuda':
 			torch.cuda.empty_cache()
+		if max_poison_distance > 0 and i == 500 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
+			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
+			break
 		pbar.update(1)
 	pbar.close()
 	del prev_M_objectives
@@ -247,8 +250,9 @@ if __name__ == "__main__":
 	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=20)
+	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=100)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
+	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
 	
 	os.sched_setaffinity(0,set(range(48)))
