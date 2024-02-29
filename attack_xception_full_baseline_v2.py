@@ -120,7 +120,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			del base, label, poison
 		del base_dataset, base_loader
 	else:
-		base_dataset = TrainDataset(prepare=False, network_name=network_name)
+		base_dataset = TrainDataset(prepare=False, prepare=False)
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		while len(poisons) < n_bases:
 			base, label = next(iter(base_loader))
