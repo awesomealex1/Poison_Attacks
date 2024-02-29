@@ -189,13 +189,14 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		else:
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
-		
+		if max_poison_distance > 0 and i == 500 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
+			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
+			del x2, target2, base2, x_space, target_space
+			break
 		del x2, target2, base2, x_space, target_space
 		if device.type == 'cuda':
 			torch.cuda.empty_cache()
-		if max_poison_distance > 0 and i == 500 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
-			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
-			break
+
 		pbar.update(1)
 	pbar.close()
 	del prev_M_objectives
