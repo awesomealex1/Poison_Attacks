@@ -115,7 +115,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 		del base_dataset, base_loader
 	return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=200, max_poison_distance=-1):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20, max_poison_distance=-1):
 	x = base
 	prev_x = base
 	prev_M_objectives = []
@@ -137,16 +137,16 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			print(new_obj)
 			
 
-		if new_obj >= avg_of_last_M and (i % M/2 == 0):
-			lr *= decay_coef
-			print('New learning rate:', lr)
+		#if new_obj >= avg_of_last_M and (i % M/2 == 0):
+		#	lr *= decay_coef
+		#	print('New learning rate:', lr)
 		
-		if i < M-1:
-			prev_M_objectives.append(new_obj)
-		else:
-			del prev_M_objectives[0]
-			prev_M_objectives.append(new_obj)
-			del new_obj
+		#if i < M-1:
+		#	prev_M_objectives.append(new_obj)
+		#else:
+		#	del prev_M_objectives[0]
+		#	prev_M_objectives.append(new_obj)
+		#	del new_obj
 		if max_poison_distance > 0 and i == 500 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
 			print(max_poison_distance)
 			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
