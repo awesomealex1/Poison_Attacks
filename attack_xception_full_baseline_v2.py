@@ -115,7 +115,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 		del base_dataset, base_loader
 	return poisons
 
-def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20, max_poison_distance=-1):
+def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=200, max_poison_distance=-1):
 	x = base
 	prev_x = base
 	prev_M_objectives = []
