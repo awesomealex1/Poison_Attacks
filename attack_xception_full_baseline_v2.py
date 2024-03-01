@@ -146,6 +146,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		else:
 			del prev_M_objectives[0]
 			prev_M_objectives.append(new_obj)
+			del new_obj
 		if max_poison_distance > 0 and i == 500 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
 			print(max_poison_distance)
 			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
