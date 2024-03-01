@@ -77,15 +77,6 @@ def create_bases(min_base_score, n_bases, network, device):
 	return base_images
 
 def predict_image(network, image, device):
-	'''
-	Predicts the label of an input image.
-	Args:
-		image: numpy image
-		network: torch model with linear layer at the end
-	Returns:
-		prediction (1 = fake, 0 = real)
-		output: Output of network
-	'''
 	image = transform(image)
 	post_function = torch.nn.Softmax(dim = 1)
 	image = image.to(device)
@@ -96,18 +87,6 @@ def predict_image(network, image, device):
 	return int(prediction.item()), output  # If prediction is 1, then fake, else real
 
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
-	'''
-	Performs feature collision attack on the target image.
-	Args:
-		feature_space: Feature space of network
-		target: Target image
-		max_iters: Maximum number of iterations to create one poison
-		beta: Beta value for feature collision attack
-		lr: Learning rate for poison creation
-		network: Network to attack
-	Returns:
-		poisons: List of poisons
-	'''
 	poisons = []
 	if max_poison_distance < 0:
 		base_dataset = BaseDataset(prepare=False, network_name=network_name)
@@ -120,7 +99,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 			del base, label, poison
 		del base_dataset, base_loader
 	else:
-		base_dataset = TrainDataset(prepare=False)
+		base_dataset = TestDataset(prepare=False)
 		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 		while len(poisons) < n_bases:
 			base, label = next(iter(base_loader))
@@ -137,21 +116,6 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 	return poisons
 
 def single_poison(feature_space, target, base, max_iters, beta, lr, network, device, decay_coef=0.9, M=20, max_poison_distance=-1):
-	'''
-	Creates a single poison.
-	Args:
-		feature_space: Feature space of network
-		target: Target image
-		base: Base image
-		max_iters: Maximum number of iterations to create one poison
-		beta: Beta value for feature collision attack
-		lr: Learning rate for poison creation
-		network: Network to attack
-		decay_coef: Decay coefficient for learning rate
-		M: Number of previous objectives to average over (used for learning rate decay)
-	Returns:
-		x: Poison image
-	'''
 	x = base
 	prev_x = base
 	prev_M_objectives = []
@@ -166,8 +130,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
 			print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		
-
-		
 		new_obj = torch.norm(x_space - target_space) + beta*torch.norm(x2 - base2)
 		avg_of_last_M = sum(prev_M_objectives)/float(min(M, i+1))
 		
@@ -176,9 +138,6 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 
 		if new_obj >= avg_of_last_M and (i % M/2 == 0):
 			lr *= decay_coef
-			x = prev_x
-		else:
-			prev_x = x
 		
 		if i < M-1:
 			prev_M_objectives.append(new_obj)
@@ -201,13 +160,11 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	return x
 
 def forward_backward(feature_space, target, base, x, beta, lr):
-	'''Performs forward and backward passes.'''
 	x_hat = forward(feature_space, target, x, lr)
 	new_x = backward(base, x_hat, beta, lr)
 	return new_x
 
 def forward(feature_space, target, x, lr):
-	'''Performs forward pass.'''
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 	target_space, x_space = feature_space(transform(target)), feature_space(transform(x))
@@ -221,7 +178,6 @@ def forward(feature_space, target, x, lr):
 	return x_hat
 
 def backward(base, x_hat, beta, lr):	
-	'''Performs backward pass.'''
 	return (x_hat + lr * beta * base) / (1 + beta * lr)
 
 class Flatten(torch.nn.Module):
@@ -248,7 +204,7 @@ if __name__ == "__main__":
 	p.add_argument('--max_iters', type=int, help='Maximum iterations for poison creation', default=2000)
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
-	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=100)
+	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=50)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
 	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
