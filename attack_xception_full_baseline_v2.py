@@ -135,9 +135,11 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		
 		if i == max_iters-1 or i == 0:
 			print(new_obj)
+			
 
 		if new_obj >= avg_of_last_M and (i % M/2 == 0):
 			lr *= decay_coef
+			print('New learning rate:', lr)
 		
 		if i < M-1:
 			prev_M_objectives.append(new_obj)
