@@ -1,0 +1,1 @@
+python attack_xception_face_baseline_v2.py --max_poison_distance 100 --poison_lr 0.001 --max_iters 8000
