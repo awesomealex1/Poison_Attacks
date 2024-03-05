@@ -1,10 +1,10 @@
 import torch
 from tqdm import tqdm
-from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, get_random_fake, get_random_real
+from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, get_random_fake
 from network.models import get_xception_untrained
 import argparse
 from data_util import save_poisons
-from train import train_full
+from train import train_face
 from datetime import datetime
 import os
 from torchvision.utils import save_image
@@ -23,18 +23,18 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 		model_path: Path to model to use for attack
 	Does not return anything but will create files with data and prints results.
 	'''
-	print('Starting baseline poison attack')
+	print('Starting baseline poison attack v2 for xception face')
 	network = torch.load(model_path, map_location=device).to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-	network_name = f'xception_full_c23_baseline_attack_{day_time}'
+	network_name = f'xception_face_c23_baseline_attack_v2_{day_time}'
 	# Preparing for poison attack
 	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
 
-	target = get_random_fake()
+	target = get_random_fake(face=True)
 	target = target.to(device)
 	while predict_image(network, target, device)[1][0][1].item() <= 0.9:
-		target = get_random_fake()
+		target = get_random_fake(face=True)
 		target = target.to(device)
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
@@ -47,14 +47,14 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 	if device.type == 'cuda':
 		torch.cuda.empty_cache()
 	poison_dataset = PoisonDataset(network_name=network_name)
-	train_dataset = TrainDataset()
+	train_dataset = TrainDataset(face=True)
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 	del poison_dataset, train_dataset
 	network_scratch = get_xception_untrained()
 	network_scratch = network_scratch.to(device)
-	network_scratch_name = f'xception_full_c23_baseline_attack_scratch_{day_time}'
-	poisoned_network = train_full(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target)
-	print(f'Target prediction after retraining from scratch: {predict_image(network, target, device)}')
+	network_scratch_name = f'xception_face_c23_baseline_attack_v2_scratch_{day_time}'
+	poisoned_network = train_face(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target)
+	print(f'Target prediction before retraining from scratch: {predict_image(network, target, device)}')
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
 
 def predict_image(network, image, device):
@@ -69,7 +69,7 @@ def predict_image(network, image, device):
 
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
 	poisons = []
-	base_dataset = TestDataset(prepare=False)
+	base_dataset = TestDataset(prepare=False, face=True)
 	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 	while len(poisons) < n_bases:
 		base, label = next(iter(base_loader))
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=50)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_full_c23_trained_from_scratch_02_06_2024_15_40_511.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_face_c23_trained_from_scratch_02_24_2024_17_08_346.p')
 	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
 	

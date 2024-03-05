@@ -195,5 +195,23 @@ def plot_prediction_change(poison_numbers):
     for poison_number in poison_numbers:
         experiment_n_path = os.path.join(experiment_path, f'{poison_number}_poisons')
         for folder in os.listdir(experiment_n_path):
-            if ''
-            poison_predictions.append(get_prediction_change(f'poison_{poison_number}_results.txt'))
+            if True:
+                poison_predictions.append(get_prediction_change(f'poison_{poison_number}_results.txt'))
+
+def extract_target_results(file):
+    predictions_clean = []
+    predictions_poisoned = []
+    poison_line = True  # Switch between reading poisoned, clean
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if len(line) == 0:
+                continue
+            prediction = line[line.find('[[')+2:line.find(']]')]
+            prediction_vals = prediction.split(', ')
+            if poison_line:
+                predictions_poisoned.append((float(prediction_vals[0]), float(prediction_vals[1])))
+            else:
+                predictions_clean.append((float(prediction_vals[0]), float(prediction_vals[1])))
+            poison_line = not poison_line
+    return predictions_clean, predictions_poisoned
