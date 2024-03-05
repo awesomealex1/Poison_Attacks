@@ -1,6 +1,6 @@
 import torch
 from tqdm import tqdm
-from datasets import BaseDataset, PoisonDataset, TrainDataset, TestDataset, get_random_fake
+from datasets import FFDataset, PoisonDataset, TrainDataset, TestDataset, get_random_fake
 from network.models import get_xception_untrained
 import argparse
 from data_util import save_poisons
@@ -69,7 +69,7 @@ def predict_image(network, image, device):
 
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
 	poisons = []
-	base_dataset = TestDataset(prepare=False, face=True)
+	base_dataset = FFDataset('test' , prepare=False, face=True)
 	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
 	while len(poisons) < n_bases:
 		base, label = next(iter(base_loader))
