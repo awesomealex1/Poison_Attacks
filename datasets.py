@@ -46,20 +46,20 @@ class FFDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_name = self.image_file_paths[idx]
+        to_tensor = transforms.Compose([transforms.ToTensor()])
         if self.face:
             img = get_face(img_name, self.face_detector)
             if self.prepare and not self.meso:
                 return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
             elif self.prepare and self.meso:
                 return prepare_image(img, meso_transform), self.labels[idx]
-            return img, self.labels[idx]
+            return to_tensor(img), self.labels[idx]
         img = pil_open(img_name)
         if self.prepare and not self.meso:
             return prepare_image(img, xception_default_data_transforms[self.split]), self.labels[idx]
         elif self.prepare and self.meso:
             return prepare_image(img, meso_transform), self.labels[idx]
         img = img.convert("RGB")
-        to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), self.labels[idx]
     
 class CustomDataset(torch.utils.data.Dataset):
