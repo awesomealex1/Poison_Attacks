@@ -171,7 +171,7 @@ if __name__ == "__main__":
 	p.add_argument('--poison_lr', type=float, help='Learning rate for poison creation', default=0.0001)
 	p.add_argument('--min_base_score', type=float, help='Minimum score for base to be classified as', default=0.9)
 	p.add_argument('--n_bases', type=int, help='Number of base images to create', default=50)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/models/xception_face_c23_trained_from_scratch_02_24_2024_17_08_346.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_face_c23_trained_from_scratch_02_24_2024_17_08_346.p')
 	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
 	
