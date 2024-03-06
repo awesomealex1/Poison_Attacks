@@ -112,7 +112,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 			lr /= 2
 		if max_poison_distance > 0 and i == 4000 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
 			print(max_poison_distance)
-			print(f'Poison was too far from target in features space: {torch.norm(x_space - target_space)}')
+			print(f'Poison was too far from target in feature space: {torch.norm(x_space - target_space)}')
 			del x2, target2, base2, x_space, target_space
 			break
 		del x2, target2, base2, x_space, target_space
