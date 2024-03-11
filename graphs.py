@@ -215,3 +215,36 @@ def extract_target_results(file):
                 predictions_clean.append((float(prediction_vals[0]), float(prediction_vals[1])))
             poison_line = not poison_line
     return predictions_clean, predictions_poisoned
+
+def graph_poison_distances(file):
+    target_dists = get_poison_target_feature_dist(file)
+    base_dists = get_poison_base_dist(file)
+
+    plt.plot(target_dists, label='Target')
+    plt.plot(base_dists, label='Base')
+    plt.xlabel('Iteration')
+    plt.ylabel('Distances')
+    plt.title('Feature distances')
+    plt.legend()
+    plt.show()
+
+def get_poison_target_feature_dist(file):
+    dists = []
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if 'Poison-target' in line:
+                dist = float(line[line.find(':')+2:])
+                dists.append(dist)
+    return dists
+
+def get_poison_base_dist(file):
+    dists = []
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if 'Poison-base' in line:
+                dist = float(line[line.find(':')+2:])
+                dists.append(dist)
+    return dists
+    

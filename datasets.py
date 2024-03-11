@@ -313,19 +313,17 @@ def get_data_labels_from_split(split_path):
     return image_file_paths, labels
 
 def get_random_fake(face=False):
-    root_dir = 'data/ff'
-    video_paths = []
-    for name, path in DATASET_PATHS.items():
-        if name != 'original_youtube':
-            video_paths += os.listdir(os.path.join(root_dir, path))
+    test_split_path = 'data/ff/splits/test.json'
+    image_file_paths, labels = get_data_labels_from_split(test_split_path)
+    random_idx = np.random.randint(len(image_file_paths))
+    while labels[random_idx] == 0:
+        random_idx = np.random.randint(len(image_file_paths))
     
-    random_vid = video_paths[np.random.randint(len(video_paths))]
-    images = os.listdir(os.path.join(root_dir, path, random_vid))
-    random_image = images[np.random.randint(len(images))]
+    random_image = image_file_paths[random_idx]
     if face:
-        image = get_face(os.path.join(root_dir, path, random_vid, random_image))
+        image = get_face(random_image)
     else:
-        image = imread(os.path.join(root_dir, path, random_vid, random_image))
+        image = imread(random_image)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     to_tensor = transforms.Compose([transforms.ToTensor()])
     return torch.unsqueeze(to_tensor(image), 0)
