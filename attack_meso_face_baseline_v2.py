@@ -61,8 +61,8 @@ def predict_image(network, image, device):
 	image = transform(image)
 	post_function = torch.nn.Softmax(dim = 1)
 	image = image.to(device)
-	print(image.shape)
-	print(network)
+	#print(image.shape)
+	#print(network)
 	output = network(image)
 	output = post_function(output)
 	_, prediction = torch.max(output, 1)    # argmax
