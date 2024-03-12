@@ -158,7 +158,7 @@ def get_headless_network(network):
 
 def transform(img):
 	transform = transforms.Compose([
-		transforms.Resize((299, 299)),
+		transforms.Resize((256, 256)),
 		transforms.Normalize([0.5]*3, [0.5]*3)
 	])
 	return transform(img)
