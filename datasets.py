@@ -90,12 +90,13 @@ class CustomDataset(torch.utils.data.Dataset):
         return to_tensor(img), 0
 
 class TrainDataset(torch.utils.data.Dataset):
-    def __init__(self, face=False, prepare=True):
+    def __init__(self, face=False, prepare=True, meso=False):
         train_split_path = 'data/ff/splits/train.json'
         self.image_file_paths, self.labels = get_data_labels_from_split(train_split_path)
         self.face = face
         self.prepare = prepare
         self.face_detector = dlib.get_frontal_face_detector()
+        self.meso = meso
 
     def __len__(self):
         return len(self.image_file_paths)
@@ -104,12 +105,16 @@ class TrainDataset(torch.utils.data.Dataset):
         img_name = self.image_file_paths[idx]
         if self.face:
             img = get_face(img_name, self.face_detector)
-            if self.prepare:
-                return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+            if self.prepare and self.meso:
+                return prepare_image(img, meso_transform), 0
+            elif self.prepare:
+                return prepare_image(img, xception_default_data_transforms['train']), 0
             return img, self.labels[idx]
         img = pil_open(img_name)
-        if self.prepare:
-            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
+        if self.prepare and self.meso:
+            return prepare_image(img, meso_transform), 0
+        elif self.prepare:
+            return prepare_image(img, xception_default_data_transforms['train']), 0
         img = img.convert("RGB")
         to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), self.labels[idx]
@@ -192,12 +197,13 @@ class BaseDataset(torch.utils.data.Dataset):
         return img, 0
 
 class PoisonDataset(torch.utils.data.Dataset):
-    def __init__(self, network_name, face=False, prepare=True):
+    def __init__(self, network_name, face=False, prepare=True, meso=False):
         self.root_dir = f'data/poisons/{network_name}'
         os.makedirs(self.root_dir, exist_ok=True)
         self.face = face
         self.prepare = prepare
         self.face_detector = dlib.get_frontal_face_detector()
+        self.meso = meso
 
     def __len__(self):
         return len(os.listdir(self.root_dir))
@@ -206,12 +212,16 @@ class PoisonDataset(torch.utils.data.Dataset):
         img_name = os.path.join(self.root_dir, f'poison_{idx}.png')
         if self.face:
             img = get_face(img_name, self.face_detector)
-            if self.prepare:
+            if self.prepare and self.meso:
+                return prepare_image(img, meso_transform), 0
+            elif self.prepare:
                 return prepare_image(img, xception_default_data_transforms['test']), 0
             return img, 0
         img = pil_open(img_name)
-        if self.prepare:
-            return prepare_image(img, xception_default_data_transforms['test']), 0    # Real
+        if self.prepare and self.meso:
+            return prepare_image(img, meso_transform), 0
+        elif self.prepare:
+            return prepare_image(img, xception_default_data_transforms['test']), 0
         img = img.convert("RGB")
         to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), 0

@@ -47,8 +47,8 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 	del poisons
 	if device.type == 'cuda':
 		torch.cuda.empty_cache()
-	poison_dataset = PoisonDataset(network_name=network_name)
-	train_dataset = TrainDataset(face=True)
+	poison_dataset = PoisonDataset(network_name=network_name, meso=True)
+	train_dataset = TrainDataset(face=True, meso=True)
 	merged_dataset = torch.utils.data.ConcatDataset([poison_dataset, train_dataset])
 	del poison_dataset, train_dataset
 	network_scratch = MesoInception4()
