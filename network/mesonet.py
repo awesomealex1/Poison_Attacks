@@ -111,11 +111,8 @@ class MesoInception4(nn.Module):
 
 	#InceptionLayer
 	def InceptionLayer1(self, input):
-		print('cccc')
 		x1 = self.Incption1_conv1(input)
-		print('XXX')
 		x2 = self.Incption1_conv2_1(input)
-		print('ZZZ')
 		x2 = self.Incption1_conv2_2(x2)
 		x3 = self.Incption1_conv3_1(input)
 		x3 = self.Incption1_conv3_2(x3)
@@ -142,7 +139,6 @@ class MesoInception4(nn.Module):
 		return y
 
 	def forward(self, input):
-		print('ppppp')
 		x = self.InceptionLayer1(input) #(Batch, 11, 128, 128)
 		x = self.InceptionLayer2(x) #(Batch, 12, 64, 64)
 
