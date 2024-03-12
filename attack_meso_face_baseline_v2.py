@@ -75,6 +75,8 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 		base, label = next(iter(base_loader))
 		base, label = base.to(device), label.to(device)
 		if label.item() == 0:
+			base = base.repeat(1, 3, 1, 1)
+			target = target.repeat(1, 3, 1, 1)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device, max_poison_distance=max_poison_distance)
 			dist = torch.norm(feature_space(transform(poison)) - feature_space(transform(target)))
 			if dist <= max_poison_distance:
