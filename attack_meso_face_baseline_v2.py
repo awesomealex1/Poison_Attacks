@@ -153,7 +153,7 @@ class Flatten(torch.nn.Module):
 
 def get_headless_network(network):
 	'''Returns the network without the last layer.'''
-	layer_cake = list(network.model.children())
+	layer_cake = list(network.children())
 	return torch.nn.Sequential(*(layer_cake[:-2]), Flatten())
 
 def transform(img):
