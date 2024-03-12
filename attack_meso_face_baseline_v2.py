@@ -9,7 +9,7 @@ from datetime import datetime
 import os
 from torchvision.utils import save_image
 from torchvision import transforms
-import psutil
+from copy import deepcopy
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max_poison_distance):
 	'''
@@ -158,8 +158,14 @@ class Flatten(torch.nn.Module):
 
 def get_headless_network(network):
 	'''Returns the network without the last layer.'''
+	model_copy = deepcopy(network)
+	network.fc1 = torch.nn.Identity()
+	network.leakyrelu = torch.nn.Identity()
+	network.dropout = torch.nn.Identity()
+	network.fc2 = torch.nn.Identity()
+	
 	layer_cake = list(network.children())
-	return torch.nn.Sequential(*(layer_cake[:2]), Flatten())
+	return torch.nn.Sequential(network, Flatten())
 
 def transform(img):
 	transform = transforms.Compose([
