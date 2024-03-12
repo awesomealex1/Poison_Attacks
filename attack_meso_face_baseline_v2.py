@@ -160,13 +160,11 @@ class Flatten(torch.nn.Module):
 def get_headless_network(network):
 	'''Returns the network without the last layer.'''
 	model_copy = deepcopy(network)
-	network.fc1 = torch.nn.Identity()
-	network.leakyrelu = torch.nn.Identity()
-	network.dropout = torch.nn.Identity()
-	network.fc2 = torch.nn.Identity()
-	
-	layer_cake = list(network.children())
-	return torch.nn.Sequential(network, Flatten())
+	model_copy.fc1 = torch.nn.Identity()
+	model_copy.leakyrelu = torch.nn.Identity()
+	model_copy.dropout = torch.nn.Identity()
+	model_copy.fc2 = torch.nn.Identity()	
+	return torch.nn.Sequential(model_copy, Flatten())
 
 def transform(img):
 	transform = transforms.Compose([
