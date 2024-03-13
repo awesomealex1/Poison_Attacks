@@ -192,5 +192,6 @@ if __name__ == "__main__":
 	
 	os.sched_setaffinity(0,set(range(48)))
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+	print(f'Setting device to: {device}')
 
 	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path, args.max_poison_distance)
