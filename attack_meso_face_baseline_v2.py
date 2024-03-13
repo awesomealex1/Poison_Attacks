@@ -73,7 +73,7 @@ def predict_image(network, image, device):
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
 	poisons = []
 	base_dataset = FFDataset('test' , prepare=False, face=True)
-	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
+	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=True)
 	while len(poisons) < n_bases:
 		base, label = next(iter(base_loader))
 		base, label = base.to(device), label.to(device)
