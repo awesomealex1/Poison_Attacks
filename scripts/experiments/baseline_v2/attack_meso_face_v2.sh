@@ -1,1 +1,1 @@
-python attack_meso_face_baseline_v2.py --max_poison_distance 600 --poison_lr 0.001 --max_iters 8000 --n_bases 50
+python attack_meso_face_baseline_v2.py --max_poison_distance 600 --poison_lr 0.001 --max_iters 8000 --n_bases 2
