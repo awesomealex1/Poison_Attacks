@@ -163,7 +163,7 @@ def get_headless_network(network):
 	model_copy.fc1 = torch.nn.Identity()
 	model_copy.leakyrelu = torch.nn.Identity()
 	model_copy.dropout = torch.nn.Identity()
-	model_copy.fc2 = torch.nn.Identity()	
+	model_copy.fc2 = torch.nn.Identity()
 	return torch.nn.Sequential(model_copy, Flatten())
 
 def transform(img):
@@ -187,5 +187,6 @@ if __name__ == "__main__":
 	
 	os.sched_setaffinity(0,set(range(48)))
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+	print(f'Setting device to: {device}')
 
 	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path, args.max_poison_distance)
