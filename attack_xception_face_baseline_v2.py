@@ -140,6 +140,8 @@ def forward(feature_space, target, x, lr):
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
 	print(x.shape, target.shape)
 	print('AAA1', time.time())
+	print(next(feature_space.parameters()).is_cuda)
+	print(target.is_cuda)
 	xxx = transform(target)
 	print('AAA2', time.time())
 	xxxx = feature_space(xxx)
