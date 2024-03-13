@@ -70,7 +70,7 @@ def predict_image(network, image, device):
 def feature_coll(feature_space, target, max_iters, beta, lr, network, device, network_name, max_poison_distance=-1, n_bases=0):
 	poisons = []
 	base_dataset = FFDataset('test' , prepare=False, face=True)
-	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
+	base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=True)
 	while len(poisons) < n_bases:
 		base, label = next(iter(base_loader))
 		base, label = base.to(device), label.to(device)
@@ -97,7 +97,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2, x2, base2 = transform(target), transform(x), transform(base)
 		target_space, x_space = feature_space(target2), feature_space(x2)
-
+		print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		if i % 100 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
