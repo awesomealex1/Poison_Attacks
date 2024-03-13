@@ -115,7 +115,7 @@ def feature_coll(feature_space, target, max_iters, beta, lr, network, device, ne
 	poisons = []
 	if max_poison_distance < 0:
 		base_dataset = BaseDataset(prepare=False, network_name=network_name)
-		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=False)
+		base_loader = torch.utils.data.DataLoader(base_dataset, batch_size=1, shuffle=True)
 		for i, (base,label) in enumerate(base_loader, 1):
 			base, label = base.to(device), label.to(device)
 			poison = single_poison(feature_space, target, base, max_iters, beta, lr, network, device)

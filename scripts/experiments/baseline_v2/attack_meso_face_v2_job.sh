@@ -13,6 +13,6 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 # Load Python
 module load anaconda
 conda activate poison
-nvidia-smi
+
 # Run the program
 . /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline_v2/attack_meso_face_v2.sh
