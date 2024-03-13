@@ -97,7 +97,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		x = forward_backward(feature_space, target, base, x, beta, lr)
 		target2, x2, base2 = transform(target), transform(x), transform(base)
 		target_space, x_space = feature_space(target2), feature_space(x2)
-		print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+		#print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		if i % 100 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
