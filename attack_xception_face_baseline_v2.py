@@ -10,6 +10,7 @@ import os
 from torchvision.utils import save_image
 from torchvision import transforms
 import psutil
+import time
 
 def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max_poison_distance):
 	'''
@@ -94,10 +95,14 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 	prev_M_objectives = []
 	pbar = tqdm(total=max_iters)
 	for i in range(max_iters):
+		print('AAA',time.time())
 		x = forward_backward(feature_space, target, base, x, beta, lr)
+		print('BBB',time.time())
 		target2, x2, base2 = transform(target), transform(x), transform(base)
+		print('CCC',time.time())
 		target_space, x_space = feature_space(target2), feature_space(x2)
-		#print(f'Poison-base distance: {torch.norm(x2 - base2)}')
+		print('DDD',time.time())
+		print(f'Poison-base distance: {torch.norm(x2 - base2)}')
 		if i % 100 == 0:
 			print(f'Poison prediction: {predict_image(network, x, device)}')
 			print(f'Poison-target feature space distance: {torch.norm(x_space - target_space)}')
@@ -107,7 +112,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		
 		if i == max_iters-1 or i == 0:
 			print(new_obj)
-		
+		print('EEE',time.time())
 		if i % 1000 == 0 and i > 0:
 			lr /= 2
 		if max_poison_distance > 0 and i == 4000 and torch.norm(x_space - target_space) > max_poison_distance * 1.5:
@@ -118,7 +123,7 @@ def single_poison(feature_space, target, base, max_iters, beta, lr, network, dev
 		del x2, target2, base2, x_space, target_space
 		if device.type == 'cuda':
 			torch.cuda.empty_cache()
-
+		print('FFF',time.time())
 		pbar.update(1)
 	pbar.close()
 	del prev_M_objectives
