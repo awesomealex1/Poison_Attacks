@@ -106,15 +106,15 @@ class TrainDataset(torch.utils.data.Dataset):
         if self.face:
             img = get_face(img_name, self.face_detector)
             if self.prepare and self.meso:
-                return prepare_image(img, meso_transform), 0
+                return prepare_image(img, meso_transform), self.labels[idx]
             elif self.prepare:
-                return prepare_image(img, xception_default_data_transforms['train']), 0
+                return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
             return img, self.labels[idx]
         img = pil_open(img_name)
         if self.prepare and self.meso:
-            return prepare_image(img, meso_transform), 0
+            return prepare_image(img, meso_transform), self.labels[idx]
         elif self.prepare:
-            return prepare_image(img, xception_default_data_transforms['train']), 0
+            return prepare_image(img, xception_default_data_transforms['train']), self.labels[idx]
         img = img.convert("RGB")
         to_tensor = transforms.Compose([transforms.ToTensor()])
         return to_tensor(img), self.labels[idx]
