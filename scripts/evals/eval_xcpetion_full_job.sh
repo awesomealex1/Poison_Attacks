@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N attack_xception_full_baseline_50
+#$ -N eval_xception_full
 #$ -cwd                  
 #$ -l h_rt=48:00:00 
 #$ -l h_vmem=1000G
