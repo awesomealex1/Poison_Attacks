@@ -12,7 +12,7 @@ cd /exports/eddie/scratch/s2017377/Poison_Attacks
 
 # Load Python
 module load anaconda
-conda activate ff-gpu
+conda activate poison
 
 # Run the program
 python /exports/eddie/scratch/s2017377/Poison_Attacks/eval_xception_full.py
