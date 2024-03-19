@@ -190,7 +190,7 @@ if __name__ == "__main__":
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_face_c23_trained_from_scratch_02_24_2024_17_08_346.p')
 	p.add_argument('--max_poison_distance', type=float, help='Maximum distance between poison and target in feature space', default=-1)
 	args = p.parse_args()
-	
+	print('TEST')
 	os.sched_setaffinity(0,set(range(48)))
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	print(f'Setting device to: {device}')
