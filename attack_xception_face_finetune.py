@@ -36,9 +36,9 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 
 	target = get_random_fake(face=True)
 	target = target.to(device)
-	while predict_image(network, target, device)[1][0][1].item() <= 0.9:
-		target = get_random_fake(face=True)
-		target = target.to(device)
+	#while predict_image(network, target, device)[1][0][1].item() <= 0.9:
+	#	target = get_random_fake(face=True)
+	#	target = target.to(device)
 	os.makedirs(f'data/targets/{network_name}', exist_ok=True)
 	save_image(target, f'data/targets/{network_name}/target.png')
 	print(f'Original target prediction: {predict_image(network, target, device)}')
