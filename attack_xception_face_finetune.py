@@ -195,4 +195,4 @@ if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	print(f'Setting device to: {device}')
 
-	#main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path, args.max_poison_distance)
+	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, 1, args.model_path, 10000000)
