@@ -16,10 +16,9 @@ def main(device):
 	'''
 	print('Starting xception face training')
 	os.sched_setaffinity(0,set(range(48)))
-	model_path = 'network/weights/xception_face_c23_trained_from_scratch_02_24_2024_17_08_340.p'
-	network = torch.load(model_path, map_location=device)
+	network = get_xception_untrained()
 	network = network.to(device)
-	day_time = "02_24_2024_17_08_34"
+	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_face_c23_trained_from_scratch_{day_time}'
 	network = train_on_ff(network, device, FFDataset('train', face=True), network_name, frozen=False, epochs=7, target=None, face=True, start_epoch=1)
 	eval_network_test(network, device, name=network_name, face=True)
