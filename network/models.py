@@ -22,6 +22,7 @@ def return_pytorch04_xception(pretrained=True):
         # Load model in torch 0.4+
         model.fc = model.last_linear
         del model.last_linear
+        print('Loading xception-b5690688.pth')
         state_dict = torch.load(
             'network/weights/xception-b5690688.pth')
         for name, weights in state_dict.items():
