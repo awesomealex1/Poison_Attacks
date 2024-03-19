@@ -26,6 +26,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 	'''
 	print('Starting baseline poison attack v2 for xception face')
 	network = get_xception_untrained()
+	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_face_c23_baseline_attack_v2_{day_time}'
 	# Preparing for poison attack
