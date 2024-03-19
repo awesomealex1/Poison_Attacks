@@ -24,11 +24,12 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 		model_path: Path to model to use for attack
 	Does not return anything but will create files with data and prints results.
 	'''
-	print('Starting baseline poison attack v2 for xception face')
+	print('Starting baseline poison attack finetune for xception face')
 	network = get_xception_untrained()
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-	network_name = f'xception_face_c23_baseline_attack_v2_{day_time}'
+	network_name = f'xception_face_c23_baseline_finetune_{day_time}'
+	return
 	# Preparing for poison attack
 	beta = beta_0 * 2048**2/(299*299)**2    # base_instance_dim = 299*299 and feature_dim = 2048
 	feature_space = get_headless_network(network)
@@ -195,4 +196,4 @@ if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	print(f'Setting device to: {device}')
 
-	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, 1, args.model_path, 10000000)
+	main(device, args.max_iters, args.beta, args.poison_lr, args.min_base_score, args.n_bases, args.model_path, args.max_poison_distance)
