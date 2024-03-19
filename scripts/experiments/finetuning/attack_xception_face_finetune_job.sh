@@ -15,4 +15,4 @@ module load anaconda
 conda activate poison
 
 # Run the program
-. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/baseline_v2/attack_xception_face_finetune.sh
+. /exports/eddie/scratch/s2017377/Poison_Attacks/scripts/experiments/finetuning/attack_xception_face_finetune.sh
