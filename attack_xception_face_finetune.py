@@ -134,24 +134,13 @@ def forward_backward(feature_space, target, base, x, beta, lr):
 def forward(feature_space, target, x, lr):
 	detached_x = x.detach()  # Detach x from the computation graph
 	x = detached_x.clone().requires_grad_(True)  # Clone and set requires_grad
-	print(x.shape, target.shape)
-	print('AAA1', time.time())
-	print(next(feature_space.parameters()).is_cuda)
-	print(target.is_cuda)
-	xxx = transform(target)
-	print('AAA2', time.time())
-	xxxx = feature_space(xxx)
-	print('AAA3', time.time())
 	target_space, x_space = feature_space(transform(target)), feature_space(transform(x))
-	print('BBB1', time.time())
 	distance = torch.norm(x_space - target_space)   # Frobenius norm
 	feature_space.zero_grad()
 	distance.backward()
 	img_grad = x.grad.data
-	print('CCC1', time.time())
 	# Update x based on the gradients
 	x_hat = x - lr * img_grad
-	print('DDD1', time.time())
 	return x_hat
 
 def backward(base, x_hat, beta, lr):	
