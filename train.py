@@ -14,7 +14,7 @@ def train_full(network, device, dataset=FFDataset('train'), name='xception_full_
 
 def train_face(network, device, dataset=FFDataset('train', face=True), name='xception_face_c23_trained_from_scratch', target=None, transfer=False):
     if transfer:
-        network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=5, target=target, face=True)
+        network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target, face=True)
     else:
         network = train_on_ff(network, device, dataset, f'{name}_frozen', frozen=True, epochs=3, target=target, face=True)
         network = train_on_ff(network, device, dataset, name, frozen=False, epochs=7, target=target, face=True)
