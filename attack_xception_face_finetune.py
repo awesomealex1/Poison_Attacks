@@ -56,7 +56,7 @@ def main(device, max_iters, beta_0, lr, min_base_score, n_bases, model_path, max
 	network_scratch = get_xception_untrained()
 	network_scratch = network_scratch.to(device)
 	network_scratch_name = f'xception_face_c23_baseline_attack_v2_scratch_{day_time}'
-	poisoned_network = train_face(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target)
+	poisoned_network = train_face(network_scratch, device, dataset=merged_dataset, name=network_scratch_name, target=target, transfer=True)
 	print(f'Target prediction before retraining from scratch: {predict_image(network, target, device)}')
 	print(f'Target prediction after retraining from scratch: {predict_image(poisoned_network, target, device)}')
 
