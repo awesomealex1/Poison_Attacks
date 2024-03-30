@@ -20,7 +20,8 @@ def main(device):
 	network = network.to(device)
 	day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 	network_name = f'xception_face_c23_trained_from_scratch_{day_time}'
-	network = train_on_ff(network, device, FFDataset('train', face=True), network_name, frozen=False, epochs=7, target=None, face=True, start_epoch=1)
+	#network = train_on_ff(network, device, FFDataset('train', face=True), network_name, frozen=False, epochs=7, target=None, face=True, start_epoch=1)
+	network = train_face(network, device, dataset=FFDataset('train', face=True), name=network_name, transfer=True)
 	eval_network_test(network, device, name=network_name, face=True)
 
 if __name__ == "__main__":
