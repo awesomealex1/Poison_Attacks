@@ -26,7 +26,7 @@ def main(device, model_path, targets_path):
     network = torch.load(model_path, map_location=device).to(device)
     day_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     network_name = f'xception_full_c23_baseline_attack_{day_time}'
-    for target in os.listdir(targets_path):
+    for target in sorted(os.listdir(targets_path)):
         target_tensor = get_image(os.path.join(targets_path, target), face=True)
         print(target)
         print(f'Target prediction: {predict_image(network, target_tensor, device)}')
