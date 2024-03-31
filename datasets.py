@@ -322,6 +322,15 @@ def get_data_labels_from_split(split_path):
     
     return image_file_paths, labels
 
+def get_image(path, face=False):
+    if face:
+        image = get_face(path)
+    else:
+        image = imread(path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    to_tensor = transforms.Compose([transforms.ToTensor()])
+    return torch.unsqueeze(to_tensor(image), 0)
+
 def get_random_fake(face=False):
     test_split_path = 'data/ff/splits/test.json'
     image_file_paths, labels = get_data_labels_from_split(test_split_path)
