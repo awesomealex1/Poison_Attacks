@@ -25,10 +25,10 @@ def main(device, model_path, targets_path):
     '''
     network = torch.load(model_path, map_location=device).to(device)
     i = 0
-    for target in sorted(os.listdir(targets_path)):
+    #for target in sorted(os.listdir(targets_path)):
         #target_tensor = get_image(os.path.join(targets_path, target))
+    while True:
         target_tensor = get_random_fake()
-        print(target)
         print(f'Target prediction: {predict_image(network, target_tensor, device)}')
         i += 1
         if i == 100:
