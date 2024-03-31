@@ -24,15 +24,10 @@ def main(device, model_path, targets_path):
     Does not return anything but will create files with data and prints results.
     '''
     network = torch.load(model_path, map_location=device).to(device)
-    i = 0
-    #for target in sorted(os.listdir(targets_path)):
-        #target_tensor = get_image(os.path.join(targets_path, target))
-    while True:
-        target_tensor = get_random_fake()
+    for target in sorted(os.listdir(targets_path)):
+        target_tensor = get_image(os.path.join(targets_path, target))
+        print(target)
         print(f'Target prediction: {predict_image(network, target_tensor, device)}')
-        i += 1
-        if i == 100:
-        	break
 
 def predict_image(network, image, device):
 	'''
