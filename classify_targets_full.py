@@ -58,7 +58,7 @@ def transform(img):
 if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_full_c23_trained_from_scratch_03_31_2024_15_54_00_frozen3.p')
+	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_full_c23_trained_from_scratch_03_31_2024_15_54_00_frozen1.p')
 	p.add_argument('--targets_path', type=str, help='Path to directory with targets', default='data/targets/finetuning_full/targets')
 	args = p.parse_args()
 	
