@@ -61,7 +61,7 @@ if __name__ == "__main__":
 	p = argparse.ArgumentParser(
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	p.add_argument('--model_path', type=str, help='Path to model to use for attack', default='network/weights/xception_face_c23_trained_from_scratch_03_30_2024_18_05_16_frozen2.p')
-	p.add_argument('--targets_path', type=str, help='Path to directory with targets', default='data/targets/finetuning_face')
+	p.add_argument('--targets_path', type=str, help='Path to directory with targets', default='data/targets/finetuning_face/targets')
 	args = p.parse_args()
 	
 	os.sched_setaffinity(0,set(range(48)))
