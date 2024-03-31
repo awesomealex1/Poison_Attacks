@@ -1,1 +1,1 @@
-python classify_target_face.py
+python classify_targets_face.py

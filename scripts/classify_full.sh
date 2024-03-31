@@ -1,1 +1,1 @@
-python classify_target_full.py
+python classify_targets_full.py

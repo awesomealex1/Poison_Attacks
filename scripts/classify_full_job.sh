@@ -1,6 +1,6 @@
 #!/bin/sh
 # Grid Engine options (lines prefixed with #$)
-#$ -N classify_face
+#$ -N classify_full
 #$ -cwd                  
 #$ -l h_rt=1:00:00 
 #$ -l h_vmem=40G
